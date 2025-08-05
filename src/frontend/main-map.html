@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Spots Secrets Occitanie - Carte Interactive</title>
+    
+    <!-- Meta tags for PWA -->
+    <meta name="theme-color" content="#2c3e50">
+    <meta name="description" content="Découvrez les spots secrets d'Occitanie - randonnées, baignades, points de vue">
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://unpkg.com">
+    <link rel="preconnect" href="https://data.geopf.fr">
+    <link rel="preconnect" href="https://api.open-meteo.com">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder@2.4.0/dist/Control.Geocoder.css">
+    
+    <!-- Main styles -->
+    <link rel="stylesheet" href="css/main-map.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="main-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <h1>🗺️ Spots Secrets Occitanie</h1>
+                <span class="spot-counter" id="spotCounter">Chargement...</span>
+            </div>
+            
+            <div class="header-controls">
+                <!-- Search -->
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="Rechercher un spot..." class="search-input">
+                    <button id="searchBtn" class="btn-icon" title="Rechercher">🔍</button>
+                </div>
+                
+                <!-- Quick Actions -->
+                <button id="geolocateBtn" class="btn-icon" title="Ma position">📍</button>
+                <button id="layersBtn" class="btn-icon" title="Couches">🗺️</button>
+                <button id="filtersBtn" class="btn-icon" title="Filtres">🎚️</button>
+                <button id="weatherBtn" class="btn-icon" title="Météo">🌤️</button>
+                <button id="addSpotBtn" class="btn-primary" title="Ajouter un spot">➕ Ajouter</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Map Container -->
+    <div id="map" class="map-container"></div>
+
+    <!-- Sidebar Panels -->
+    <!-- Filters Panel -->
+    <aside id="filtersPanel" class="sidebar-panel filters-panel">
+        <div class="panel-header">
+            <h3>🎚️ Filtres</h3>
+            <button class="close-btn" onclick="togglePanel('filtersPanel')">✕</button>
+        </div>
+        <div class="panel-content">
+            <div class="filter-section">
+                <h4>Type de spot</h4>
+                <div class="filter-grid" id="typeFilters">
+                    <label class="filter-chip">
+                        <input type="checkbox" value="randonnee" checked>
+                        <span>🥾 Randonnée</span>
+                    </label>
+                    <label class="filter-chip">
+                        <input type="checkbox" value="baignade" checked>
+                        <span>🏊 Baignade</span>
+                    </label>
+                    <label class="filter-chip">
+                        <input type="checkbox" value="point_de_vue" checked>
+                        <span>👁️ Point de vue</span>
+                    </label>
+                    <label class="filter-chip">
+                        <input type="checkbox" value="patrimoine" checked>
+                        <span>🏛️ Patrimoine</span>
+                    </label>
+                    <label class="filter-chip">
+                        <input type="checkbox" value="grotte" checked>
+                        <span>🕳️ Grotte</span>
+                    </label>
+                    <label class="filter-chip">
+                        <input type="checkbox" value="cascade" checked>
+                        <span>💦 Cascade</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="filter-section">
+                <h4>Difficulté</h4>
+                <div class="filter-grid" id="difficultyFilters">
+                    <label class="filter-chip">
+                        <input type="checkbox" value="facile" checked>
+                        <span>🟢 Facile</span>
+                    </label>
+                    <label class="filter-chip">
+                        <input type="checkbox" value="moyen" checked>
+                        <span>🟡 Moyen</span>
+                    </label>
+                    <label class="filter-chip">
+                        <input type="checkbox" value="difficile" checked>
+                        <span>🔴 Difficile</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="filter-section">
+                <h4>Distance maximale</h4>
+                <input type="range" id="distanceRange" min="0" max="200" value="200" step="10">
+                <span id="distanceValue">200 km</span>
+            </div>
+            
+            <div class="filter-section">
+                <h4>Météo favorable uniquement</h4>
+                <label class="switch">
+                    <input type="checkbox" id="weatherFilter">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
+            <button class="btn-primary full-width" onclick="applyFilters()">Appliquer les filtres</button>
+            <button class="btn-secondary full-width" onclick="resetFilters()">Réinitialiser</button>
+        </div>
+    </aside>
+
+    <!-- Layers Panel -->
+    <aside id="layersPanel" class="sidebar-panel layers-panel">
+        <div class="panel-header">
+            <h3>🗺️ Couches</h3>
+            <button class="close-btn" onclick="togglePanel('layersPanel')">✕</button>
+        </div>
+        <div class="panel-content">
+            <div class="layer-section">
+                <h4>Fonds de carte</h4>
+                <div id="baseLayers"></div>
+            </div>
+            
+            <div class="layer-section">
+                <h4>Données IGN</h4>
+                <div id="ignLayers"></div>
+            </div>
+            
+            <div class="layer-section">
+                <h4>Overlays</h4>
+                <label class="layer-option">
+                    <input type="checkbox" id="clustersToggle" checked>
+                    <span>Regroupement des markers</span>
+                </label>
+                <label class="layer-option">
+                    <input type="checkbox" id="heatmapToggle">
+                    <span>Carte de chaleur</span>
+                </label>
+                <label class="layer-option">
+                    <input type="checkbox" id="terrainToggle">
+                    <span>Relief ombré</span>
+                </label>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Weather Panel -->
+    <aside id="weatherPanel" class="sidebar-panel weather-panel">
+        <div class="panel-header">
+            <h3>🌤️ Météo</h3>
+            <button class="close-btn" onclick="togglePanel('weatherPanel')">✕</button>
+        </div>
+        <div class="panel-content" id="weatherContent">
+            <div class="loading">Chargement de la météo...</div>
+        </div>
+    </aside>
+
+    <!-- Spot Details Modal -->
+    <div id="spotModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div id="spotDetails"></div>
+        </div>
+    </div>
+
+    <!-- Add Spot Form -->
+    <div id="addSpotModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Ajouter un nouveau spot</h2>
+            <form id="addSpotForm">
+                <div class="form-group">
+                    <label for="spotName">Nom du spot *</label>
+                    <input type="text" id="spotName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="spotType">Type *</label>
+                    <select id="spotType" required>
+                        <option value="">Sélectionner...</option>
+                        <option value="randonnee">🥾 Randonnée</option>
+                        <option value="baignade">🏊 Baignade</option>
+                        <option value="point_de_vue">👁️ Point de vue</option>
+                        <option value="patrimoine">🏛️ Patrimoine</option>
+                        <option value="grotte">🕳️ Grotte</option>
+                        <option value="cascade">💦 Cascade</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="spotDescription">Description</label>
+                    <textarea id="spotDescription" rows="4"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Position *</label>
+                    <div class="position-info">
+                        <span id="spotPosition">Cliquez sur la carte pour définir la position</span>
+                        <button type="button" class="btn-secondary" onclick="useMyLocation()">📍 Utiliser ma position</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="spotDifficulty">Difficulté</label>
+                    <select id="spotDifficulty">
+                        <option value="facile">🟢 Facile</option>
+                        <option value="moyen">🟡 Moyen</option>
+                        <option value="difficile">🔴 Difficile</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn-primary full-width">Ajouter le spot</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Chargement en cours...</p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder@2.4.0/dist/Control.Geocoder.js"></script>
+    <script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+    
+    <!-- Main app -->
+    <script type="module" src="js/main-map-app.js"></script>
+</body>
+</html>

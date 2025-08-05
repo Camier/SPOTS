@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spots Secrets - Carte Régionale Occitanie (API)</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/regional-styles.css">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100vh;
+        }
+        
+        .info-panel {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            max-width: 300px;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .filter-btn {
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .filter-btn:hover {
+            background: #f0f0f0;
+        }
+        
+        .filter-btn.active {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+        
+        #stats-container {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        
+        .loading-spinner {
+            font-size: 24px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        #error-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000;
+        }
+        
+        .error-message {
+            background: #dc2626;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 3000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 5px;
+            position: relative;
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover,
+        .close:focus {
+            color: black;
+        }
+        
+        .spot-details h3 {
+            margin-top: 0;
+        }
+        
+        .spot-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .weather-warning {
+            color: #dc2626;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    
+    <div class="info-panel">
+        <h3>Spots Secrets Occitanie</h3>
+        
+        <div class="filter-buttons">
+            <button class="filter-btn active" data-filter-type="all">Tous</button>
+            <button class="filter-btn" data-filter-type="waterfall">Cascades</button>
+            <button class="filter-btn" data-filter-type="cave">Grottes</button>
+            <button class="filter-btn" data-filter-type="spring">Sources</button>
+            <button class="filter-btn" data-filter-type="ruins">Ruines</button>
+        </div>
+        
+        <div>
+            <label for="department-select">Département:</label>
+            <select id="department-select">
+                <option value="all">Tous</option>
+                <option value="09">Ariège</option>
+                <option value="12">Aveyron</option>
+                <option value="31">Haute-Garonne</option>
+                <option value="32">Gers</option>
+                <option value="46">Lot</option>
+                <option value="65">Hautes-Pyrénées</option>
+                <option value="81">Tarn</option>
+                <option value="82">Tarn-et-Garonne</option>
+            </select>
+        </div>
+        
+        <div style="margin-top: 10px;">
+            <input type="text" id="search-spots" placeholder="Rechercher un spot..." style="width: 100%; padding: 5px;">
+        </div>
+        
+        <div id="stats-container"></div>
+        
+        <div style="margin-top: 10px;">
+            <button id="refresh-data" class="filter-btn">🔄 Actualiser</button>
+        </div>
+    </div>
+    
+    <div id="loading-overlay">
+        <div class="loading-spinner">⏳</div>
+    </div>
+    
+    <div id="error-container"></div>
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    
+    <!-- Application modules -->
+    <script type="module">
+        // Import the API-connected weather app
+        import { WeatherApp } from './js/modules/weather-app-refactored-api.js';
+        
+        // Make it globally available if needed
+        window.WeatherApp = WeatherApp;
+        
+        console.log('Regional Map with API Integration loaded');
+    </script>
+</body>
+</html>

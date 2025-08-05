@@ -1,0 +1,23 @@
+{
+  "best_posting_hours": [
+    0
+  ],
+  "best_posting_days": [
+    "Saturday",
+    "Wednesday",
+    "Thursday"
+  ],
+  "peak_months": [
+    1
+  ],
+  "hourly_pattern": {
+    "0": 298.2
+  },
+  "daily_pattern": {
+    "Friday": 219.0,
+    "Saturday": 478.0,
+    "Sunday": 136.0,
+    "Thursday": 285.0,
+    "Wednesday": 373.0
+  }
+}

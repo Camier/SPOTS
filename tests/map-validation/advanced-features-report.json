@@ -1,0 +1,32 @@
+{
+  "timestamp": "2025-08-05T10:17:52.163Z",
+  "summary": {
+    "total": 4,
+    "passed": 4,
+    "failed": 0
+  },
+  "tests": [
+    {
+      "feature": "Forest Overlay",
+      "passed": true,
+      "errors": []
+    },
+    {
+      "feature": "Heatmap",
+      "passed": true,
+      "errors": []
+    },
+    {
+      "feature": "Sun Calculator",
+      "passed": true,
+      "errors": [
+        "Sun calculator controls not found"
+      ]
+    },
+    {
+      "feature": "Combined Features",
+      "passed": true,
+      "errors": []
+    }
+  ]
+}

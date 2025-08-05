@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spots Secrets - Carte Artistique</title>
+    
+    <!-- Mapbox GL JS for vector tiles -->
+    <script src='https://unpkg.com/mapbox-gl@2.15.0/dist/mapbox-gl.js'></script>
+    <link href='https://unpkg.com/mapbox-gl@2.15.0/dist/mapbox-gl.css' rel='stylesheet' />
+    
+    <!-- Leaflet for marker management -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100vh;
+        }
+        
+        .info-panel {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            max-width: 300px;
+        }
+        
+        .info-panel h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .style-selector {
+            margin: 10px 0;
+        }
+        
+        .style-selector select {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .filter-btn {
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .filter-btn:hover {
+            background: #f0f0f0;
+        }
+        
+        .filter-btn.active {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+        
+        #stats-container {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        #loading {
+            display: none;
+            color: #2563eb;
+            font-style: italic;
+        }
+        
+        /* Custom marker styles */
+        .spot-marker {
+            background-color: #dc2626;
+            border: 2px solid white;
+            border-radius: 50%;
+            width: 12px;
+            height: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        /* Style preview images */
+        .style-preview {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 5px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .style-preview .color-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 1px solid #ccc;
+        }
+        
+        .mapboxgl-popup {
+            z-index: 1001;
+        }
+        
+        .spot-popup h4 {
+            margin: 0 0 5px 0;
+            color: #1a1a1a;
+        }
+        
+        .spot-popup .type {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        .spot-popup .meta {
+            font-size: 12px;
+            color: #999;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    
+    <div class="info-panel">
+        <h3>🎨 Spots Artistiques</h3>
+        
+        <div class="style-selector">
+            <label for="map-style">Style de carte:</label>
+            <select id="map-style">
+                <optgroup label="Monochrome">
+                    <option value="mono_red">🔴 Rouge</option>
+                    <option value="mono_green">🟢 Vert</option>
+                    <option value="mono_blue" selected>🔵 Bleu</option>
+                    <option value="mono_purple">🟣 Violet</option>
+                    <option value="mono_orange">🟠 Orange</option>
+                    <option value="mono_yellow">🟡 Jaune</option>
+                    <option value="mono_black">⚫ Noir</option>
+                    <option value="mono_gray">⚪ Gris</option>
+                </optgroup>
+                <optgroup label="Artistique">
+                    <option value="cyanotype">📷 Cyanotype</option>
+                    <option value="cassini">🗺️ Cassini</option>
+                    <option value="retro">📻 Rétro</option>
+                    <option value="guidebook">📖 Guide</option>
+                    <option value="coffee">☕ Café</option>
+                    <option value="mondrian">🎨 Mondrian</option>
+                </optgroup>
+                <optgroup label="Thématique">
+                    <option value="roads">🚶 Routes</option>
+                    <option value="erp">🏢 ERP</option>
+                    <option value="mapart">🏗️ MapArt</option>
+                </optgroup>
+                <optgroup label="Saisonnier">
+                    <option value="halloween">🎃 Halloween</option>
+                    <option value="christmas">🎅 Noël</option>
+                </optgroup>
+            </select>
+        </div>
+        
+        <div class="style-preview" id="style-preview">
+            <div class="color-dot" id="color-preview"></div>
+            <span id="style-description">Style bleu monochrome</span>
+        </div>
+        
+        <div class="filter-buttons">
+            <button class="filter-btn active" data-filter-type="all">Tous</button>
+            <button class="filter-btn" data-filter-type="waterfall">Cascades</button>
+            <button class="filter-btn" data-filter-type="cave">Grottes</button>
+            <button class="filter-btn" data-filter-type="spring">Sources</button>
+            <button class="filter-btn" data-filter-type="ruins">Ruines</button>
+        </div>
+        
+        <div id="stats-container"></div>
+        <div id="loading">Chargement du style...</div>
+    </div>
+    
+    <script>
+        // Style configurations
+        const styleConfigs = {
+            // Monochrome styles
+            mono_red: { color: '#912626', description: 'Style rouge monochrome' },
+            mono_green: { color: '#6d8e30', description: 'Style vert monochrome' },
+            mono_blue: { color: '#265791', description: 'Style bleu monochrome' },
+            mono_purple: { color: '#583c77', description: 'Style violet monochrome' },
+            mono_orange: { color: '#c26518', description: 'Style orange monochrome' },
+            mono_yellow: { color: '#ffff00', description: 'Style jaune monochrome' },
+            mono_black: { color: '#111111', description: 'Style noir monochrome' },
+            mono_gray: { color: '#333333', description: 'Style gris monochrome' },
+            // Artistic styles
+            cyanotype: { color: '#0066cc', description: 'Impression cyanotype ancienne' },
+            cassini: { color: '#8b7355', description: 'Style carte de Cassini' },
+            retro: { color: '#d2691e', description: 'Style atlas routier vintage' },
+            guidebook: { color: '#4b4b4b', description: 'Style guide touristique' },
+            coffee: { color: '#6f4e37', description: 'Couleur café' },
+            mondrian: { color: '#ff0000', description: 'Style Piet Mondrian' },
+            // Thematic styles
+            roads: { color: '#666666', description: 'Réseau routier piéton' },
+            erp: { color: '#2e5984', description: 'Établissements publics' },
+            mapart: { color: '#333333', description: 'Art cartographique' },
+            // Seasonal styles
+            halloween: { color: '#ff6600', description: 'Thème Halloween' },
+            christmas: { color: '#dc143c', description: 'Thème Noël' }
+        };
+        
+        // Initialize Mapbox GL map
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'https://viglino.github.io/geoservice-style/mono/mono_blue.json',
+            center: [1.8, 43.8], // Occitanie center
+            zoom: 8,
+            attributionControl: false
+        });
+        
+        // Add attribution control
+        map.addControl(new mapboxgl.AttributionControl({
+            customAttribution: '© IGN, Style by Viglino'
+        }));
+        
+        // State
+        let allSpots = [];
+        let currentFilter = 'all';
+        let markers = [];
+        
+        // Get icon for spot type
+        function getIcon(type) {
+            const icons = {
+                'waterfall': '💧',
+                'cave': '🕳️',
+                'spring': '♨️',
+                'ruins': '🏛️',
+                'unknown': '📍'
+            };
+            return icons[type] || icons['unknown'];
+        }
+        
+        // Create marker for spot
+        function createMarker(spot) {
+            const el = document.createElement('div');
+            el.className = 'spot-marker';
+            
+            const marker = new mapboxgl.Marker(el)
+                .setLngLat([spot.longitude, spot.latitude])
+                .setPopup(new mapboxgl.Popup({ offset: 25 })
+                    .setHTML(`
+                        <div class="spot-popup">
+                            <h4>${spot.name}</h4>
+                            <div class="type">${getIcon(spot.type)} ${spot.type}</div>
+                            ${spot.description ? `<p>${spot.description.substring(0, 150)}...</p>` : ''}
+                            <div class="meta">
+                                ${spot.elevation ? `Alt: ${spot.elevation}m<br>` : ''}
+                                Confiance: ${Math.round(spot.confidence_score * 100)}%
+                            </div>
+                        </div>
+                    `))
+                .addTo(map);
+            
+            marker.spotData = spot;
+            return marker;
+        }
+        
+        // Update displayed spots
+        function updateSpots() {
+            // Remove existing markers
+            markers.forEach(marker => marker.remove());
+            markers = [];
+            
+            // Filter spots
+            let filteredSpots = allSpots;
+            
+            if (currentFilter !== 'all') {
+                filteredSpots = filteredSpots.filter(spot => spot.type === currentFilter);
+            }
+            
+            // Add new markers
+            filteredSpots.forEach(spot => {
+                markers.push(createMarker(spot));
+            });
+            
+            // Update stats
+            updateStats(filteredSpots.length);
+        }
+        
+        // Update stats display
+        function updateStats(count) {
+            document.getElementById('stats-container').textContent = `${count} spots affichés`;
+        }
+        
+        // Show/hide loading
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+        
+        // Load spots from API
+        async function loadSpots() {
+            try {
+                const response = await fetch('http://localhost:8000/api/spots/quality?limit=1000&min_confidence=0.6');
+                const data = await response.json();
+                allSpots = data.spots;
+                updateSpots();
+            } catch (error) {
+                console.error('Error loading spots:', error);
+                // Fallback to static data if API fails
+                allSpots = [];
+                updateStats(0);
+            }
+        }
+        
+        // Change map style
+        function changeMapStyle(styleName) {
+            showLoading(true);
+            
+            const styleUrl = styleName.includes('/')
+                ? styleName
+                : `https://viglino.github.io/geoservice-style/${styleName.replace('_', '/')}/${styleName}.json`;
+            
+            map.setStyle(styleUrl);
+            
+            // Update preview
+            const config = styleConfigs[styleName];
+            if (config) {
+                document.getElementById('color-preview').style.backgroundColor = config.color;
+                document.getElementById('style-description').textContent = config.description;
+            }
+            
+            // Re-add markers after style loads
+            map.once('styledata', () => {
+                showLoading(false);
+                updateSpots();
+            });
+        }
+        
+        // Event listeners
+        document.getElementById('map-style').addEventListener('change', (e) => {
+            changeMapStyle(e.target.value);
+        });
+        
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                currentFilter = e.target.dataset.filterType;
+                updateSpots();
+            });
+        });
+        
+        // Initialize when map loads
+        map.on('load', () => {
+            loadSpots();
+        });
+        
+        // Add navigation controls
+        map.addControl(new mapboxgl.NavigationControl());
+    </script>
+</body>
+</html>

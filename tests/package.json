@@ -1,0 +1,25 @@
+{
+  "name": "spots-e2e-tests",
+  "version": "1.0.0",
+  "description": "End-to-end tests for SPOTS project",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run e2e/**/*.test.js",
+    "test:watch": "vitest watch e2e/**/*.test.js",
+    "test:security": "vitest run e2e/map-security.test.js",
+    "test:ign": "vitest run e2e/ign-integration.test.js",
+    "test:accessibility": "vitest run e2e/accessibility.test.js",
+    "test:responsive": "vitest run e2e/responsive.test.js",
+    "test:headed": "HEADLESS=false vitest run e2e/**/*.test.js",
+    "test:debug": "vitest run e2e/**/*.test.js --inspect-brk"
+  },
+  "devDependencies": {
+    "chai": "^4.3.10",
+    "vitest": "^3.2.4",
+    "puppeteer": "^21.6.1",
+    "axe-core": "^4.8.3"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

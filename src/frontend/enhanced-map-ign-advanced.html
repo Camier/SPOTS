@@ -1,0 +1,1647 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spots Secrets Occitanie - Carte IGN Avancée</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --primary-dark: #4f46e5;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --blur: blur(16px);
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+            background: #0f172a;
+        }
+        
+        #map {
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        /* Glassmorphism panels */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            color: white;
+        }
+        
+        /* Main control panel */
+        .main-control {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            width: 360px;
+            max-width: calc(100vw - 40px);
+            animation: slideIn 0.5s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .app-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .app-logo {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary-light), var(--primary-dark));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+        }
+        
+        .app-title {
+            flex: 1;
+        }
+        
+        .app-title h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+            background: linear-gradient(135deg, #fff, #e0e7ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .app-title p {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+        
+        /* Search input */
+        .search-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 14px 48px 14px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            color: white;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.15);
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .search-results {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin-top: 8px;
+            display: none;
+        }
+        
+        .search-results.visible {
+            display: block;
+        }
+        
+        /* Activity presets */
+        .preset-container {
+            margin-bottom: 20px;
+        }
+        
+        .preset-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            opacity: 0.9;
+        }
+        
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        
+        .preset-btn {
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .preset-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .preset-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+        }
+        
+        .preset-btn i {
+            font-size: 1rem;
+        }
+        
+        /* Layer control panel */
+        .layer-control {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            width: 380px;
+            max-width: calc(100vw - 40px);
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            animation: slideInRight 0.5s ease;
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .layer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .layer-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .layer-stats {
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+        
+        /* Layer categories */
+        .layer-category {
+            margin-bottom: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .category-header {
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+        
+        .category-header:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .category-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .category-icon {
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        .category-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        .category-toggle {
+            transition: transform 0.3s ease;
+        }
+        
+        .category-toggle.expanded {
+            transform: rotate(180deg);
+        }
+        
+        .category-layers {
+            display: none;
+            padding: 8px;
+        }
+        
+        .category-layers.expanded {
+            display: block;
+        }
+        
+        /* Individual layer toggle */
+        .layer-item {
+            padding: 12px;
+            margin-bottom: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            user-select: none;
+        }
+        
+        .layer-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .layer-item.active {
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+        }
+        
+        .layer-details {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+        
+        .layer-icon {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        
+        .layer-text {
+            flex: 1;
+        }
+        
+        .layer-name {
+            font-weight: 500;
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+        }
+        
+        .layer-desc {
+            font-size: 0.75rem;
+            opacity: 0.7;
+        }
+        
+        /* Modern toggle switch */
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-switch.active {
+            background: var(--primary);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.5);
+        }
+        
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 10px;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .toggle-switch.active::after {
+            left: 22px;
+        }
+        
+        /* Stats panel */
+        .stats-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+            animation: slideUp 0.5s ease;
+        }
+        
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 120px);
+            gap: 12px;
+        }
+        
+        .stat-card {
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            background: linear-gradient(135deg, #fff, #e0e7ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            opacity: 0.7;
+        }
+        
+        /* Error message */
+        .error-message {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 0.85rem;
+            display: none;
+        }
+        
+        .error-message.visible {
+            display: block;
+        }
+        
+        /* Enhanced spot markers */
+        .spot-marker {
+            position: relative;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+        }
+        
+        .spot-marker-inner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            background: var(--primary);
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .spot-marker:hover .spot-marker-inner {
+            transform: translate(-50%, -50%) scale(1.2);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+        }
+        
+        .spot-marker.cave .spot-marker-inner {
+            background: #8b5cf6;
+        }
+        
+        .spot-marker.waterfall .spot-marker-inner {
+            background: #06b6d4;
+        }
+        
+        .spot-marker.viewpoint .spot-marker-inner {
+            background: #f59e0b;
+        }
+        
+        .spot-marker.historical_ruins .spot-marker-inner {
+            background: #dc2626;
+        }
+        
+        .spot-marker.natural_spring .spot-marker-inner {
+            background: #10b981;
+        }
+        
+        /* Remove pulse animation for performance */
+        
+        /* Enhanced popup */
+        .leaflet-popup-content-wrapper {
+            background: var(--glass-bg);
+            backdrop-filter: var(--blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            color: white;
+        }
+        
+        .leaflet-popup-tip {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: var(--blur);
+        }
+        
+        /* Loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loading-content {
+            text-align: center;
+            color: white;
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Mobile hide toggle */
+        .mobile-hide-btn {
+            display: none;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 10;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-control {
+                width: calc(100% - 40px);
+                transform: translateX(0);
+                transition: transform 0.3s ease;
+            }
+            
+            .main-control.hidden {
+                transform: translateX(-100%);
+            }
+            
+            .layer-control {
+                right: 10px;
+                width: calc(100% - 20px);
+                max-height: 50vh;
+                transform: translateX(0);
+                transition: transform 0.3s ease;
+            }
+            
+            .layer-control.hidden {
+                transform: translateX(100%);
+            }
+            
+            .mobile-hide-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .preset-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(3, 100px);
+            }
+            
+            .stats-panel {
+                left: 50%;
+                transform: translateX(-50%);
+                width: auto;
+            }
+        }
+        
+        /* Scrollbar styling */
+        .layer-control::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .layer-control::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+        
+        .layer-control::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+        
+        .layer-control::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Marker cluster styles */
+        .marker-cluster {
+            background: rgba(99, 102, 241, 0.2);
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+            backdrop-filter: blur(8px);
+        }
+        
+        .marker-cluster-small {
+            background: rgba(99, 102, 241, 0.3);
+        }
+        
+        .marker-cluster-medium {
+            background: rgba(99, 102, 241, 0.4);
+        }
+        
+        .marker-cluster-large {
+            background: rgba(99, 102, 241, 0.5);
+        }
+        
+        .cluster-inner {
+            text-align: center;
+            font-size: 14px;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* WFS Analysis Panel Styles */
+        .wfs-analysis-panel {
+            backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .analysis-loading {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #6366f1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .score-display {
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .score-main {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #10b981;
+        }
+
+        .score-breakdown {
+            margin: 15px 0;
+        }
+
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+        }
+
+        .score-value {
+            font-weight: bold;
+            color: #3b82f6;
+        }
+
+        .clear-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .clear-btn:hover {
+            background: #dc2626;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <h2>Chargement de la carte IGN avancée...</h2>
+            <p style="opacity: 0.7;">Préparation des couches thématiques</p>
+        </div>
+    </div>
+    
+    <!-- Map container -->
+    <div id="map"></div>
+    
+    <!-- Main control panel -->
+    <div class="main-control glass-panel" id="mainControl">
+        <button class="mobile-hide-btn" onclick="togglePanel('mainControl')">
+            <i class="fas fa-times"></i>
+        </button>
+        
+        <div class="app-header">
+            <div class="app-logo">
+                <i class="fas fa-map-marked-alt"></i>
+            </div>
+            <div class="app-title">
+                <h1>Spots Secrets Occitanie</h1>
+                <p>Carte IGN multicouches avancée</p>
+            </div>
+        </div>
+        
+        <div class="error-message" id="errorMessage"></div>
+        
+        <!-- Search -->
+        <div class="search-container">
+            <input type="text" 
+                   class="search-input" 
+                   id="searchBox" 
+                   placeholder="Rechercher un spot, un lieu..."
+                   autocomplete="off">
+            <i class="fas fa-search search-icon"></i>
+            <div class="search-results" id="searchResults"></div>
+        </div>
+        
+        <!-- Activity presets -->
+        <div class="preset-container">
+            <div class="preset-title">Préréglages d'activité</div>
+            <div class="preset-grid">
+                <button class="preset-btn" data-preset="hiking">
+                    <i class="fas fa-hiking"></i>
+                    Randonnée
+                </button>
+                <button class="preset-btn" data-preset="exploration">
+                    <i class="fas fa-binoculars"></i>
+                    Exploration
+                </button>
+                <button class="preset-btn" data-preset="heritage">
+                    <i class="fas fa-landmark"></i>
+                    Patrimoine
+                </button>
+                <button class="preset-btn" data-preset="nature">
+                    <i class="fas fa-leaf"></i>
+                    Nature
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Layer control panel -->
+    <div class="layer-control glass-panel" id="layerControl">
+        <button class="mobile-hide-btn" onclick="togglePanel('layerControl')">
+            <i class="fas fa-times"></i>
+        </button>
+        
+        <div class="layer-header">
+            <div class="layer-title">
+                <i class="fas fa-layer-group"></i>
+                Couches IGN
+            </div>
+            <div class="layer-stats" id="layerStats">
+                0/0 actives
+            </div>
+        </div>
+        
+        <div id="layerCategories">
+            <!-- Categories will be dynamically generated -->
+        </div>
+    </div>
+    
+    <!-- Stats panel -->
+    <div class="stats-panel glass-panel">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="spotCount">0</div>
+                <div class="stat-label">Spots</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="layerCount">0</div>
+                <div class="stat-label">Couches</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="zoomLevel">10</div>
+                <div class="stat-label">Zoom</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <!-- IGN WFS Client -->
+    <script src="js/ign-wfs-client.js"></script>
+    
+    <script>
+        // Global configuration
+        const CONFIG = {
+            API_BASE_URL: window.location.hostname === 'localhost' ? 'http://localhost:8000' : '',
+            DEFAULT_CENTER: [43.8, 1.8], // Occitanie center
+            DEFAULT_ZOOM: 8,
+            DEFAULT_IGN_KEY: 'essentiels'
+        };
+        
+        // Global state
+        let map;
+        let spotsData = [];
+        let ignLayers = {};
+        let activeLayers = new Set();
+        let spotsLayer;
+        let currentPreset = null;
+        let layerCategories = {};
+        let wfsClient; // IGN WFS Client instance
+        
+        // IGN layer definitions (fallback if API fails)
+        const DEFAULT_IGN_LAYERS = {
+            scan25: {
+                name: 'SCAN 25 Touristique',
+                url: 'https://wxs.ign.fr/essentiels/geoportail/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN25TOUR&STYLE=normal&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=image/jpeg',
+                category: 'base_maps',
+                type: 'raster',
+                attribution: '© IGN',
+                opacity: 1
+            },
+            plan_ign: {
+                name: 'Plan IGN v2',
+                url: 'https://wxs.ign.fr/essentiels/geoportail/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=image/png',
+                category: 'base_maps',
+                type: 'vector',
+                attribution: '© IGN',
+                opacity: 1
+            },
+            satellite: {
+                name: 'Orthophotographies',
+                url: 'https://wxs.ign.fr/essentiels/geoportail/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=ORTHOIMAGERY.ORTHOPHOTOS&STYLE=normal&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=image/jpeg',
+                category: 'base_maps',
+                type: 'raster',
+                attribution: '© IGN',
+                opacity: 1
+            },
+            cadastre: {
+                name: 'Parcelles cadastrales',
+                url: 'https://wxs.ign.fr/essentiels/geoportail/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=CADASTRALPARCELS.PARCELLAIRE_EXPRESS&STYLE=normal&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=image/png',
+                category: 'administrative',
+                type: 'vector',
+                attribution: '© IGN',
+                opacity: 0.7
+            },
+            scan_regional: {
+                name: 'SCAN Régional',
+                url: 'https://wxs.ign.fr/essentiels/geoportail/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN-REGIONAL&STYLE=normal&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=image/jpeg',
+                category: 'base_maps',
+                type: 'raster',
+                attribution: '© IGN',
+                opacity: 1
+            },
+            cassini: {
+                name: 'Carte de Cassini',
+                url: 'https://wxs.ign.fr/essentiels/geoportail/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.CASSINI&STYLE=normal&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=image/jpeg',
+                category: 'historical',
+                type: 'raster',
+                attribution: '© IGN',
+                opacity: 1
+            }
+        };
+        
+        const DEFAULT_CATEGORIES = {
+            base_maps: 'Cartes de base',
+            nature: 'Nature et environnement',
+            infrastructure: 'Infrastructure',
+            administrative: 'Administratif',
+            historical: 'Historique'
+        };
+        
+        // Activity presets configuration
+        const activityPresets = {
+            hiking: {
+                name: 'Randonnée',
+                layers: ['scan25', 'plan_ign', 'hiking_trails', 'elevation_contours'],
+                description: 'Cartes topographiques détaillées avec sentiers'
+            },
+            exploration: {
+                name: 'Exploration',
+                layers: ['satellite', 'forest', 'hydrography'],
+                description: 'Vue satellite avec environnement naturel'
+            },
+            heritage: {
+                name: 'Patrimoine',
+                layers: ['plan_ign', 'cassini', 'cadastre'],
+                description: 'Cartes avec histoire et cadastre'
+            },
+            nature: {
+                name: 'Nature',
+                layers: ['satellite', 'forest', 'protected_areas'],
+                description: 'Vue satellite avec zones naturelles'
+            }
+        };
+        
+        // Initialize application
+        async function initApp() {
+            try {
+                showLoading('Initialisation de la carte...');
+                
+                // Initialize map
+                await initMap();
+                
+                // Load IGN layers
+                showLoading('Chargement des couches IGN...');
+                await loadIgnLayers();
+                
+                // Load spots
+                showLoading('Chargement des spots secrets...');
+                await loadSpots();
+                
+                // Setup UI
+                setupEventListeners();
+                updateStats();
+                
+                // Hide loading overlay
+                hideLoading();
+                
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showError('Erreur lors du chargement de l\'application');
+                hideLoading();
+            }
+        }
+        
+        // Show/hide loading
+        function showLoading(message) {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.remove('hidden');
+            if (message) {
+                overlay.querySelector('p').textContent = message;
+            }
+        }
+        
+        function hideLoading() {
+            setTimeout(() => {
+                document.getElementById('loadingOverlay').classList.add('hidden');
+            }, 500);
+        }
+        
+        // Show error message
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.classList.add('visible');
+            setTimeout(() => {
+                errorEl.classList.remove('visible');
+            }, 5000);
+        }
+        
+        // Initialize map
+        async function initMap() {
+            map = L.map('map', {
+                center: CONFIG.DEFAULT_CENTER,
+                zoom: CONFIG.DEFAULT_ZOOM,
+                zoomControl: true,
+                preferCanvas: true
+            });
+            
+            // Don't add any default layer here - will be added after IGN layers load
+            
+            // Initialize IGN WFS Client
+            wfsClient = new IGNWFSClient('http://localhost:8000/api/ign');
+            
+            // Get WFS capabilities on load
+            wfsClient.getCapabilities().then(capabilities => {
+                console.log('🗺️ IGN WFS Capabilities loaded:', capabilities);
+            }).catch(error => {
+                console.warn('WFS capabilities unavailable:', error);
+            });
+            
+            // Update zoom level display
+            map.on('zoomend', () => {
+                document.getElementById('zoomLevel').textContent = map.getZoom();
+            });
+        }
+        
+        // Load IGN layers configuration
+        async function loadIgnLayers() {
+            // Always use default categories
+            layerCategories = DEFAULT_CATEGORIES;
+            
+            // First, create default IGN layers
+            for (const [key, config] of Object.entries(DEFAULT_IGN_LAYERS)) {
+                createIgnLayer(key, config);
+            }
+            
+            try {
+                // Try to fetch additional layers from API
+                const response = await fetch(`${CONFIG.API_BASE_URL}/api/ign/map-layers/ign`);
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Add any additional layers from API that don't conflict
+                    for (const [key, config] of Object.entries(data.layers || {})) {
+                        if (!ignLayers[key]) {
+                            // Modify the URL to use essentiels key
+                            if (config.url) {
+                                config.url = config.url.replace(/wxs\.ign\.fr\/[^\/]+\//, 'wxs.ign.fr/essentiels/');
+                            }
+                            // Ensure layer has a category
+                            if (!config.category) {
+                                config.category = 'nature'; // Default category for API layers
+                            }
+                            createIgnLayer(key, config);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.warn('Using only default IGN layers:', error);
+            }
+            
+            // Generate UI
+            generateLayerUI();
+        }
+        
+        // Create IGN layer
+        function createIgnLayer(key, config) {
+            try {
+                const layer = L.tileLayer(config.url, {
+                    attribution: config.attribution || '© IGN',
+                    opacity: config.opacity || 1,
+                    maxZoom: 19,
+                    id: key
+                });
+                ignLayers[key] = layer;
+                layer._layerConfig = config;
+            } catch (error) {
+                console.error(`Error creating layer ${key}:`, error);
+            }
+        }
+        
+        // Generate layer UI
+        function generateLayerUI() {
+            const container = document.getElementById('layerCategories');
+            container.innerHTML = '';
+            
+            // Group layers by category
+            const layersByCategory = {};
+            for (const [key, layer] of Object.entries(ignLayers)) {
+                const config = layer._layerConfig || { category: 'other', name: key };
+                const category = config.category || 'other';
+                
+                if (!layersByCategory[category]) {
+                    layersByCategory[category] = [];
+                }
+                layersByCategory[category].push({ key, config });
+            }
+            
+            // Create category sections
+            for (const [categoryKey, categoryName] of Object.entries(layerCategories)) {
+                const layers = layersByCategory[categoryKey] || [];
+                if (layers.length === 0) continue;
+                
+                const categoryEl = createCategoryElement(categoryKey, categoryName, layers);
+                container.appendChild(categoryEl);
+            }
+            
+            // If no layers are active, activate a default one
+            if (activeLayers.size === 0) {
+                // Try to activate Plan IGN first, then satellite as fallback
+                if (ignLayers.plan_ign) {
+                    toggleLayer('plan_ign');
+                } else if (ignLayers.satellite) {
+                    toggleLayer('satellite');
+                } else {
+                    // Last resort - activate first available layer
+                    const firstLayer = Object.keys(ignLayers)[0];
+                    if (firstLayer) {
+                        toggleLayer(firstLayer);
+                    }
+                }
+            }
+            
+            updateLayerStats();
+        }
+        
+        // Create category element
+        function createCategoryElement(categoryKey, categoryName, layers) {
+            const categoryEl = document.createElement('div');
+            categoryEl.className = 'layer-category';
+            categoryEl.dataset.category = categoryKey;
+            
+            // Category icon map
+            const categoryIcons = {
+                base_maps: 'fa-map',
+                nature: 'fa-tree',
+                infrastructure: 'fa-road',
+                water: 'fa-water',
+                administrative: 'fa-building',
+                tourism: 'fa-camera',
+                historical: 'fa-history'
+            };
+            
+            const categoryColors = {
+                base_maps: '#6366f1',
+                nature: '#10b981',
+                infrastructure: '#f59e0b',
+                water: '#06b6d4',
+                administrative: '#8b5cf6',
+                tourism: '#ec4899',
+                historical: '#a78bfa'
+            };
+            
+            categoryEl.innerHTML = `
+                <div class="category-header" onclick="toggleCategory('${categoryKey}')">
+                    <div class="category-info">
+                        <div class="category-icon" style="background: ${categoryColors[categoryKey] || '#6b7280'};">
+                            <i class="fas ${categoryIcons[categoryKey] || 'fa-layer-group'}"></i>
+                        </div>
+                        <div>
+                            <div class="category-name">${categoryName}</div>
+                            <div class="layer-desc">${layers.length} couches</div>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-down category-toggle"></i>
+                </div>
+                <div class="category-layers" id="category-${categoryKey}">
+                    ${layers.map(({ key, config }) => createLayerElement(key, config)).join('')}
+                </div>
+            `;
+            
+            return categoryEl;
+        }
+        
+        // Create layer element
+        function createLayerElement(key, config) {
+            const layerIcons = {
+                scan25: 'fa-map-marked',
+                plan_ign: 'fa-map',
+                satellite: 'fa-satellite',
+                cadastre: 'fa-border-all',
+                scan_regional: 'fa-globe-europe',
+                cassini: 'fa-scroll',
+                forest: 'fa-tree',
+                elevation_contours: 'fa-chart-line',
+                slopes: 'fa-angle-double-up',
+                protected_areas: 'fa-shield-alt',
+                hiking_trails: 'fa-hiking',
+                hydrography: 'fa-water'
+            };
+            
+            const isActive = activeLayers.has(key);
+            
+            return `
+                <div class="layer-item ${isActive ? 'active' : ''}" data-layer="${key}" onclick="toggleLayer('${key}')">
+                    <div class="layer-details">
+                        <div class="layer-icon">
+                            <i class="fas ${layerIcons[key] || 'fa-layer-group'}"></i>
+                        </div>
+                        <div class="layer-text">
+                            <div class="layer-name">${config.name}</div>
+                            <div class="layer-desc">IGN ${config.type || 'layer'}</div>
+                        </div>
+                    </div>
+                    <div class="toggle-switch ${isActive ? 'active' : ''}"></div>
+                </div>
+            `;
+        }
+        
+        // Toggle category
+        window.toggleCategory = function(categoryKey) {
+            const categoryEl = document.querySelector(`[data-category="${categoryKey}"]`);
+            const toggleIcon = categoryEl.querySelector('.category-toggle');
+            const layersEl = document.getElementById(`category-${categoryKey}`);
+            
+            toggleIcon.classList.toggle('expanded');
+            layersEl.classList.toggle('expanded');
+        };
+        
+        // Toggle layer
+        window.toggleLayer = function(layerKey) {
+            const layer = ignLayers[layerKey];
+            if (!layer) return;
+            
+            const layerEl = document.querySelector(`[data-layer="${layerKey}"]`);
+            const toggleEl = layerEl.querySelector('.toggle-switch');
+            
+            try {
+                if (activeLayers.has(layerKey)) {
+                    map.removeLayer(layer);
+                    activeLayers.delete(layerKey);
+                    layerEl.classList.remove('active');
+                    toggleEl.classList.remove('active');
+                } else {
+                    // Remove other base layers if this is a base map
+                    if (layer._layerConfig && layer._layerConfig.category === 'base_maps') {
+                        activeLayers.forEach(activeKey => {
+                            const activeLayer = ignLayers[activeKey];
+                            if (activeLayer && activeLayer._layerConfig && 
+                                activeLayer._layerConfig.category === 'base_maps') {
+                                toggleLayer(activeKey);
+                            }
+                        });
+                    }
+                    
+                    map.addLayer(layer);
+                    activeLayers.add(layerKey);
+                    layerEl.classList.add('active');
+                    toggleEl.classList.add('active');
+                }
+                
+                updateLayerStats();
+            } catch (error) {
+                console.error(`Error toggling layer ${layerKey}:`, error);
+                showError('Erreur lors du changement de couche');
+            }
+        };
+        
+        // Update layer statistics
+        function updateLayerStats() {
+            const total = Object.keys(ignLayers).length;
+            const active = activeLayers.size;
+            document.getElementById('layerStats').textContent = `${active}/${total} actives`;
+            document.getElementById('layerCount').textContent = active;
+        }
+        
+        // Load spots
+        async function loadSpots() {
+            try {
+                spotsLayer = L.markerClusterGroup({
+                    chunkedLoading: true,
+                    chunkInterval: 200,
+                    chunkDelay: 50,
+                    spiderfyOnMaxZoom: true,
+                    showCoverageOnHover: false,
+                    maxClusterRadius: 50,
+                    disableClusteringAtZoom: 16,
+                    animate: true,
+                    animateAddingMarkers: false, // Disable for performance
+                    iconCreateFunction: function(cluster) {
+                        const count = cluster.getChildCount();
+                        let size = 'small';
+                        let className = 'marker-cluster-small';
+                        
+                        if (count > 50) {
+                            size = 'large';
+                            className = 'marker-cluster-large';
+                        } else if (count > 20) {
+                            size = 'medium';
+                            className = 'marker-cluster-medium';
+                        }
+                        
+                        return L.divIcon({
+                            html: `<div class="cluster-inner">${count}</div>`,
+                            className: `marker-cluster ${className}`,
+                            iconSize: L.point(40, 40)
+                        });
+                    }
+                });
+                
+                // Try to fetch spots from API
+                try {
+                    const response = await fetch(`${CONFIG.API_BASE_URL}/api/spots?limit=1000`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        spotsData = data.spots || data;
+                    } else {
+                        throw new Error('API not available');
+                    }
+                } catch (error) {
+                    console.warn('Using fallback spot data:', error);
+                    // Use some default spots as fallback
+                    spotsData = [
+                        { id: 1, name: 'Exemple de spot', latitude: 43.6, longitude: 1.44, type: 'viewpoint' }
+                    ];
+                }
+                
+                // Create markers
+                const markers = spotsData
+                    .filter(spot => spot.latitude && spot.longitude)
+                    .map(spot => createSpotMarker(spot));
+                
+                spotsLayer.addLayers(markers);
+                map.addLayer(spotsLayer);
+                
+                document.getElementById('spotCount').textContent = spotsData.length;
+                
+            } catch (error) {
+                console.error('Error loading spots:', error);
+                showError('Erreur lors du chargement des spots');
+            }
+        }
+        
+        // Create spot marker
+        function createSpotMarker(spot) {
+            const markerHtml = `
+                <div class="spot-marker ${spot.type || 'unknown'}">
+                    <div class="spot-marker-inner"></div>
+                </div>
+            `;
+            
+            const icon = L.divIcon({
+                className: 'custom-marker',
+                html: markerHtml,
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+            });
+            
+            const marker = L.marker([spot.latitude, spot.longitude], { icon });
+            
+            marker.bindPopup(createPopupContent(spot), {
+                maxWidth: 400,
+                className: 'custom-popup'
+            });
+            
+            return marker;
+        }
+        
+        // Create popup content
+        function createPopupContent(spot) {
+            const typeLabels = {
+                cave: 'Grotte',
+                waterfall: 'Cascade',
+                viewpoint: 'Point de vue',
+                historical_ruins: 'Ruines historiques',
+                natural_spring: 'Source naturelle'
+            };
+            
+            return `
+                <div class="spot-popup">
+                    <h3 style="margin: 0 0 12px 0; color: var(--primary);">
+                        ${spot.name || 'Spot Secret'}
+                    </h3>
+                    <div style="display: flex; gap: 16px; margin-bottom: 12px;">
+                        <div>
+                            <strong>Type:</strong><br>
+                            ${typeLabels[spot.type] || spot.type || 'Non spécifié'}
+                        </div>
+                        ${spot.elevation ? `
+                        <div>
+                            <strong>Altitude:</strong><br>
+                            ${Math.round(spot.elevation)}m
+                        </div>
+                        ` : ''}
+                    </div>
+                    ${spot.description ? `
+                    <div style="margin-bottom: 12px;">
+                        <strong>Description:</strong><br>
+                        ${spot.description}
+                    </div>
+                    ` : ''}
+                    <div style="font-size: 0.85rem; opacity: 0.8;">
+                        <i class="fas fa-map-marker-alt"></i>
+                        ${spot.latitude.toFixed(5)}, ${spot.longitude.toFixed(5)}
+                    </div>
+                    <button onclick="analyzeSpotEnvironment(${spot.id}, [${spot.latitude}, ${spot.longitude}], '${spot.name?.replace(/'/g, "\\'") || 'Spot Secret'}')" 
+                            class="btn btn-secondary btn-sm mt-2" style="width: 100%; margin-top: 12px; padding: 8px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        🔍 Analyser l'environnement
+                    </button>
+                </div>
+            `;
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // Search functionality
+            const searchBox = document.getElementById('searchBox');
+            let searchTimeout;
+            
+            searchBox.addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    performSearch(e.target.value);
+                }, 300);
+            });
+            
+            // Activity presets
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const preset = this.dataset.preset;
+                    applyPreset(preset);
+                });
+            });
+        }
+        
+        // Apply activity preset
+        function applyPreset(presetKey) {
+            const preset = activityPresets[presetKey];
+            if (!preset) return;
+            
+            // Update UI
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.preset === presetKey);
+            });
+            
+            // Clear all layers
+            activeLayers.forEach(layerKey => {
+                if (preset.layers.indexOf(layerKey) === -1) {
+                    toggleLayer(layerKey);
+                }
+            });
+            
+            // Activate preset layers
+            preset.layers.forEach(layerKey => {
+                if (!activeLayers.has(layerKey) && ignLayers[layerKey]) {
+                    toggleLayer(layerKey);
+                }
+            });
+            
+            currentPreset = presetKey;
+        }
+        
+        // Search functionality
+        function performSearch(query) {
+            const resultsEl = document.getElementById('searchResults');
+            
+            if (!query) {
+                resultsEl.classList.remove('visible');
+                spotsLayer.clearLayers();
+                const markers = spotsData
+                    .filter(spot => spot.latitude && spot.longitude)
+                    .map(spot => createSpotMarker(spot));
+                spotsLayer.addLayers(markers);
+                return;
+            }
+            
+            const searchLower = query.toLowerCase();
+            const results = spotsData.filter(spot => {
+                return (spot.name && spot.name.toLowerCase().includes(searchLower)) ||
+                       (spot.description && spot.description.toLowerCase().includes(searchLower)) ||
+                       (spot.type && spot.type.toLowerCase().includes(searchLower));
+            });
+            
+            // Update results display
+            resultsEl.textContent = `${results.length} résultat${results.length > 1 ? 's' : ''} trouvé${results.length > 1 ? 's' : ''}`;
+            resultsEl.classList.add('visible');
+            
+            // Update markers
+            spotsLayer.clearLayers();
+            const markers = results.map(spot => createSpotMarker(spot));
+            spotsLayer.addLayers(markers);
+            
+            // Zoom to results if any
+            if (results.length > 0 && results.length < 10) {
+                const group = L.featureGroup(markers);
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
+        }
+        
+        // Update statistics
+        function updateStats() {
+            document.getElementById('spotCount').textContent = spotsData.length;
+            document.getElementById('layerCount').textContent = activeLayers.size;
+            document.getElementById('zoomLevel').textContent = map.getZoom();
+        }
+        
+        // Toggle panel visibility (mobile)
+        window.togglePanel = function(panelId) {
+            const panel = document.getElementById(panelId);
+            panel.classList.toggle('hidden');
+        };
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', initApp);
+        
+        // WFS Spot Analysis Function
+        async function analyzeSpotEnvironment(spotId, coordinates, spotName) {
+            try {
+                // Clear existing WFS layers
+                wfsClient.clearWFSLayers(map);
+                
+                // Show loading indicator
+                showAnalysisLoading(spotName);
+                
+                // Get comprehensive WFS analysis
+                const analysis = await wfsClient.getSpotWFSAnalysis(spotId, 1500);
+                
+                // Visualize on map
+                await wfsClient.visualizeSpotEnvironment(map, spotId, coordinates);
+                
+                // Display results
+                displayWFSAnalysisResults(analysis);
+                
+                console.log('🎯 WFS Analysis completed for:', spotName, analysis);
+                
+            } catch (error) {
+                console.error('WFS Analysis failed:', error);
+                showAnalysisError('Analyse indisponible temporairement');
+            }
+        }
+
+        // Analysis UI Functions
+        function showAnalysisLoading(spotName) {
+            const container = getOrCreateAnalysisContainer();
+            container.innerHTML = `
+                <div class="analysis-loading">
+                    <div class="loading-spinner"></div>
+                    <h3>🔍 Analyse en cours...</h3>
+                    <p>Analyse de l'environnement de <strong>${spotName}</strong></p>
+                </div>
+            `;
+        }
+
+        function displayWFSAnalysisResults(analysis) {
+            const container = getOrCreateAnalysisContainer();
+            
+            if (analysis.wfs_analysis && analysis.wfs_analysis.accessibility_score) {
+                const score = analysis.wfs_analysis.accessibility_score;
+                container.innerHTML = `
+                    <div class="analysis-results">
+                        <h3>🎯 Analyse d'Accessibilité</h3>
+                        <div class="score-display">
+                            <div class="score-main">${score.overall}/100</div>
+                            <div class="score-label">Score Global</div>
+                        </div>
+                        <div class="score-breakdown">
+                            <div class="score-item">
+                                <span>🚶 Transport:</span>
+                                <span class="score-value">${score.transport}/100</span>
+                            </div>
+                            <div class="score-item">
+                                <span>💧 Eau:</span>
+                                <span class="score-value">${score.water_access}/100</span>
+                            </div>
+                        </div>
+                        <div class="score-factors">
+                            <h4>Facteurs:</h4>
+                            <ul>
+                                ${score.factors.map(factor => `<li>${factor}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <button onclick="clearWFSAnalysis()" class="clear-btn">Effacer l'analyse</button>
+                    </div>
+                `;
+            }
+        }
+
+        function getOrCreateAnalysisContainer() {
+            let container = document.getElementById('wfs-analysis-panel');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'wfs-analysis-panel';
+                container.className = 'glass-panel wfs-analysis-panel';
+                container.style.cssText = `
+                    position: absolute;
+                    top: 20px;
+                    right: 20px;
+                    width: 320px;
+                    max-height: 80vh;
+                    overflow-y: auto;
+                    z-index: 1000;
+                    display: none;
+                `;
+                document.body.appendChild(container);
+            }
+            container.style.display = 'block';
+            return container;
+        }
+
+        function clearWFSAnalysis() {
+            wfsClient.clearWFSLayers(map);
+            const container = document.getElementById('wfs-analysis-panel');
+            if (container) {
+                container.style.display = 'none';
+            }
+        }
+
+        function showAnalysisError(message) {
+            const container = getOrCreateAnalysisContainer();
+            container.innerHTML = `
+                <div class="analysis-error">
+                    <h3>⚠️ Erreur d'analyse</h3>
+                    <p>${message}</p>
+                    <button onclick="clearWFSAnalysis()" class="clear-btn">Fermer</button>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

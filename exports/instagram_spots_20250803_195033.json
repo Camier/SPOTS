@@ -1,0 +1,48 @@
+{
+  "export_date": "2025-08-03T19:50:33.559786",
+  "total_spots": 3,
+  "spots": [
+    {
+      "name": "Lac de Salagou",
+      "coordinates": {
+        "lat": 43.6508,
+        "lon": 3.3857
+      },
+      "department": "34",
+      "caption": "Beautiful day at the lake! Contact me [user] or [email]",
+      "activities": [
+        "randonnée",
+        "baignade"
+      ],
+      "type": "lac",
+      "collected_at": "2025-08-03T19:49:58.580010"
+    },
+    {
+      "name": "Gorges d'Ehujarré",
+      "coordinates": {
+        "lat": null,
+        "lon": null
+      },
+      "department": "65",
+      "caption": "Amazing hike this morning! Call [phone] for guided tours",
+      "activities": [
+        "randonnée"
+      ],
+      "type": "gorge",
+      "collected_at": "2025-08-03T19:49:58.598800"
+    },
+    {
+      "name": "Unknown",
+      "coordinates": {
+        "lat": 43.650773,
+        "lon": 3.385674
+      },
+      "department": "34",
+      "caption": "Quelle jolie vue. Où est-ce? ✨",
+      "activities": [],
+      "type": "nature_spot",
+      "collected_at": "2025-08-03T19:50:33.543108"
+    }
+  ],
+  "source": "Instagram"
+}

@@ -1,0 +1,115 @@
+{
+  "export_date": "2025-08-03T21:27:12.619834",
+  "source": "Instagram",
+  "total_spots": 6,
+  "validation_stats": {
+    "total_items": 8,
+    "valid_items": 6,
+    "invalid_items": 2,
+    "validation_rate": 75.0,
+    "duration_seconds": 64.366329,
+    "items_per_second": 0.12428858572934928,
+    "top_errors": {
+      "Sanitization failed": 2
+    }
+  },
+  "spots": [
+    {
+      "id": "C8zXyS3tL1j",
+      "caption": "Journée parfaite au Lac de Salagou! 🏊‍♂️ Eau cristalline, idéale pour la baignade. #Occitanie #NatureLover",
+      "timestamp": "2025-08-03T14:30:00Z",
+      "likes": 245,
+      "url": "https://instagram.com/p/C8zXyS3tL1j",
+      "location": "Lac de Salagou",
+      "coordinates": {
+        "lat": 43.6468449,
+        "lon": 3.3912091
+      },
+      "activities": [
+        "baignade"
+      ],
+      "sentiment": "positive",
+      "collected_at": "2025-08-03T21:26:09.415331"
+    },
+    {
+      "id": "C8zXyS3tL2k",
+      "caption": "Randonnée matinale au Pic du Canigou 🏔️ Vue à couper le souffle! Contact: [email]",
+      "timestamp": "2025-08-03T08:15:00Z",
+      "likes": 189,
+      "url": "https://instagram.com/p/C8zXyS3tL2k",
+      "location": "couper",
+      "coordinates": null,
+      "activities": [
+        "randonnée"
+      ],
+      "sentiment": "positive",
+      "collected_at": "2025-08-03T21:26:28.200097"
+    },
+    {
+      "id": "C8zXyS3tL4m",
+      "caption": "Découverte des cascades près de Saint-Guilhem-le-Désert 💦",
+      "timestamp": "not-a-date",
+      "likes": 156,
+      "url": "https://instagram.com/p/C8zXyS3tL4m",
+      "location": "Saint-Guilhem-le-Désert",
+      "coordinates": {
+        "lat": 43.734,
+        "lon": 3.54852
+      },
+      "activities": [],
+      "sentiment": "positive",
+      "collected_at": "2025-08-03T21:26:48.484387"
+    },
+    {
+      "id": "C8zXyS3tL5n",
+      "caption": "Session VTT dans les Cévennes! 🚵‍♂️ Trails incroyables près de Florac. Tel: [phone]",
+      "timestamp": "2025-08-03T11:00:00Z",
+      "likes": 312,
+      "url": "https://instagram.com/p/C8zXyS3tL5n",
+      "location": "Florac, Cévennes",
+      "coordinates": {
+        "lat": 44.2458567,
+        "lon": 3.6524836
+      },
+      "activities": [
+        "vtt"
+      ],
+      "sentiment": "positive",
+      "collected_at": "2025-08-03T21:26:49.593490"
+    },
+    {
+      "id": "C8zXyS3tL7p",
+      "caption": "Balade en kayak sur le Tarn 🛶 Départ de La Malène",
+      "timestamp": "2025-08-03T13:20:00Z",
+      "likes": 423,
+      "url": "https://instagram.com/p/C8zXyS3tL7p",
+      "location": "La Malène",
+      "coordinates": {
+        "lat": 44.302193,
+        "lon": 3.3201297
+      },
+      "activities": [
+        "kayak"
+      ],
+      "sentiment": null,
+      "collected_at": "2025-08-03T21:27:11.524572"
+    },
+    {
+      "id": "C8zXyS3tL8q",
+      "caption": "Pêche à la truite dans les Pyrénées 🎣 Spot secret près de Bagnères-de-Luchon",
+      "timestamp": "2025-08-03T07:00:00Z",
+      "likes": 98,
+      "url": "https://instagram.com/p/C8zXyS3tL8q",
+      "location": "truite",
+      "coordinates": {
+        "lat": 43.6488926,
+        "lon": 2.3378026
+      },
+      "activities": [
+        "pêche"
+      ],
+      "sentiment": null,
+      "collected_at": "2025-08-03T21:27:12.616371"
+    }
+  ]
+}

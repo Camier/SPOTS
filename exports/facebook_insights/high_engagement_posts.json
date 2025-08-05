@@ -1,0 +1,61 @@
+[
+  {
+    "text":"Camping sauvage dans les C\u00e9vennes, nuit \u00e9toil\u00e9e inoubliable \u26fa",
+    "engagement_score":478,
+    "locations":[
+
+    ],
+    "activities":[
+      "camping"
+    ],
+    "created_time":1735948800000
+  },
+  {
+    "text":"Magnifique randonn\u00e9e au Pic du Canigou! Vue incroyable sur toute l'Occitanie \ud83c\udfd4\ufe0f",
+    "engagement_score":373,
+    "locations":[
+      "Pic du Canigou",
+      "Canigou"
+    ],
+    "activities":[
+      "randonn\u00e9e"
+    ],
+    "created_time":1735689600000
+  },
+  {
+    "text":"Baignade rafra\u00eechissante au Lac de Salagou, eau turquoise parfaite! #H\u00e9rault",
+    "engagement_score":285,
+    "locations":[
+      "Salagou",
+      "turquoise parfaite",
+      "Lac de Salagou"
+    ],
+    "activities":[
+      "baignade"
+    ],
+    "created_time":1735776000000
+  },
+  {
+    "text":"Escalade aux Gorges du Tarn ce weekend, voies magnifiques pour tous niveaux",
+    "engagement_score":219,
+    "locations":[
+      "Tarn",
+      "Gorges du Tarn"
+    ],
+    "activities":[
+      "escalade"
+    ],
+    "created_time":1735862400000
+  },
+  {
+    "text":"VTT dans la for\u00eat de Fontfroide pr\u00e8s de Narbonne, 30km de pur plaisir!",
+    "engagement_score":136,
+    "locations":[
+      "Narbonne"
+    ],
+    "activities":[
+      "vtt"
+    ],
+    "created_time":1736035200000
+  }
+]

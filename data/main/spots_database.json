@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "export_date": "2025-08-05T07:25:00.000000",
+    "total_spots": 0,
+    "verification_info": {
+      "description": "Only 100% verified and documented spots",
+      "verification_required": [
+        "Real location with exact coordinates",
+        "Verified name and description",
+        "Confirmed accessibility",
+        "Recent validation (within 6 months)",
+        "Photo or official documentation"
+      ]
+    }
+  },
+  "spots": []
+}

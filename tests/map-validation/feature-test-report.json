@@ -1,0 +1,54 @@
+{
+  "timestamp": "2025-08-05T09:56:34.608Z",
+  "summary": {
+    "total": 8,
+    "passed": 7,
+    "failed": 1
+  },
+  "tests": [
+    {
+      "feature": "Search",
+      "passed": true,
+      "errors": []
+    },
+    {
+      "feature": "Geolocation",
+      "passed": true,
+      "errors": []
+    },
+    {
+      "feature": "Layer Switching",
+      "passed": true,
+      "errors": []
+    },
+    {
+      "feature": "Filters",
+      "passed": false,
+      "errors": [
+        "Node is either not clickable or not an Element"
+      ]
+    },
+    {
+      "feature": "Weather",
+      "passed": true,
+      "errors": []
+    },
+    {
+      "feature": "Add Spot",
+      "passed": true,
+      "errors": []
+    },
+    {
+      "feature": "Spot Interaction",
+      "passed": true,
+      "errors": [
+        "No popup appeared when clicking marker"
+      ]
+    },
+    {
+      "feature": "Responsive Design",
+      "passed": true,
+      "errors": []
+    }
+  ]
+}

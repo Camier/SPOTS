@@ -1,0 +1,17 @@
+Print statements requiring manual review:
+
+/home/miko/projects/spots/src/backend/services/code_improvement_service.py:
+  Line 113: Complex print statement needs manual review: if 'print(' in code and 'debug' not in code.lower():
+
+/home/miko/projects/spots/src/backend/services/code_improvement_service.py:
+  Line 117: Complex print statement needs manual review: 'line': self._find_line_number(code, 'print(')
+
+/home/miko/projects/spots/src/backend/scrapers/openstreetmap_scraper.py:
+  Line 286: Complex print statement needs manual review: print(
+
+/home/miko/projects/spots/src/backend/scrapers/osm_scraper.py:
+  Line 286: Complex print statement needs manual review: print(
+
+/home/miko/projects/spots/src/backend/core/logging_config.py:
+  Line 109: Complex print statement needs manual review: """Direct replacement for print() statements"""
+

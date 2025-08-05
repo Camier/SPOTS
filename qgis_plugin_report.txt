@@ -1,0 +1,16 @@
+QGIS Plugin Installation Report
+========================================
+QGIS Version: 3.34.4-Prizren
+Python Path: /usr/bin/python3
+Plugin Path: ['/home/miko/.local/share/QGIS/QGIS3/profiles/default/python/plugins', '/usr/share/qgis/python/plugins']
+
+Recommended plugins to install manually:
+- QuickMapServices
+- mmqgis
+- SCP
+- qgis2web
+- profiletool
+- digitizingtools
+- DataPlotly
+- go2streetview
+- OSMDownloader

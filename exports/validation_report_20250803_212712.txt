@@ -1,0 +1,28 @@
+
+============================================================
+📊 REAL-TIME VALIDATION REPORT
+============================================================
+
+🎯 Scraping Summary:
+  • Total items processed: 8
+  • Valid items: 6 (75.0%)
+  • Invalid items: 2
+  • Processing time: 64.4s
+  • Speed: 0.1 items/second
+
+📍 Location Detection:
+  • Items with location: 6
+  • Items with coordinates: 5
+  • Occitanie coverage: 5
+
+🏃 Activity Detection:
+  • baignade: 1 posts
+  • randonnée: 1 posts
+  • vtt: 1 posts
+  • kayak: 1 posts
+  • pêche: 1 posts
+
+❌ Top Validation Errors:
+  • Sanitization failed...: 2 times
+
+============================================================

@@ -1,0 +1,3 @@
+# SPOTS Project Context (Copy-Paste Version)
+
+I'm working on the SPOTS project at `/home/miko/projects/spots` - a platform for discovering hidden outdoor locations in Occitanie, France. It has a Python/FastAPI backend (port 8000) with 817 spots in SQLite, and a JavaScript/Leaflet frontend (port 8085) with IGN French maps. The backend API is fully functional but the frontend currently uses static JSON instead of the API. Main files: `src/backend/main.py` (API), `src/frontend/regional-map.html` (UI), `data/occitanie_spots.db` (database). Stack: Python 3.12, FastAPI, Leaflet.js, IGN maps, Playwright scraping.

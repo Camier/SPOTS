@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spots Secrets - Occitanie</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        }
+        
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
+        
+        /* Header with regional navigation */
+        .regional-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 12px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .app-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-right: auto;
+        }
+        
+        /* Department selector */
+        .dept-selector {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .dept-btn {
+            padding: 6px 12px;
+            border: 2px solid transparent;
+            background: #f3f4f6;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            color: #374151;
+        }
+        
+        .dept-btn:hover {
+            background: #e5e7eb;
+        }
+        
+        .dept-btn.active {
+            background: var(--dept-color);
+            color: white;
+            border-color: var(--dept-color);
+        }
+        
+        /* Zone navigation */
+        .zone-nav {
+            position: absolute;
+            top: 80px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .zone-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #1f2937;
+        }
+        
+        .zone-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .zone-item {
+            padding: 8px 12px;
+            background: #f9fafb;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .zone-item:hover {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        /* Stats panel */
+        .stats-panel {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            min-width: 250px;
+        }
+        
+        .stats-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #1f2937;
+            font-size: 16px;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 14px;
+        }
+        
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+        
+        .stat-dept {
+            font-weight: 500;
+            color: #4b5563;
+        }
+        
+        .stat-count {
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .stat-bar {
+            height: 4px;
+            background: #e5e7eb;
+            border-radius: 2px;
+            margin-top: 4px;
+            overflow: hidden;
+        }
+        
+        .stat-fill {
+            height: 100%;
+            background: var(--dept-color);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+        
+        /* Map controls positioning */
+        .leaflet-top.leaflet-left {
+            top: 140px;
+        }
+        
+        /* Department colors */
+        .dept-09 { --dept-color: #2563eb; }
+        .dept-12 { --dept-color: #059669; }
+        .dept-31 { --dept-color: #dc2626; }
+        .dept-32 { --dept-color: #7c3aed; }
+        .dept-46 { --dept-color: #ea580c; }
+        .dept-65 { --dept-color: #0891b2; }
+        .dept-81 { --dept-color: #84cc16; }
+        .dept-82 { --dept-color: #f59e0b; }
+        
+        /* Custom popup */
+        .spot-popup {
+            min-width: 200px;
+        }
+        
+        .popup-header {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #1f2937;
+        }
+        
+        .popup-dept {
+            display: inline-block;
+            padding: 4px 8px;
+            background: var(--dept-color);
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        .popup-coords {
+            font-size: 12px;
+            color: #6b7280;
+            font-family: monospace;
+        }
+        
+        /* Loading */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            text-align: center;
+        }
+        
+        .loading.hidden {
+            display: none;
+        }
+        
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .regional-header {
+                padding: 10px;
+            }
+            
+            .app-title {
+                font-size: 16px;
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            .dept-selector {
+                width: 100%;
+                overflow-x: auto;
+                flex-wrap: nowrap;
+            }
+            
+            .zone-nav {
+                top: 120px;
+                left: 10px;
+                right: 10px;
+                max-width: none;
+            }
+            
+            .stats-panel {
+                bottom: 10px;
+                right: 10px;
+                left: 10px;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Regional header -->
+    <div class="regional-header">
+        <div class="app-title">🗺️ Spots Secrets - Occitanie</div>
+        <div class="dept-selector">
+            <button class="dept-btn dept-09" onclick="focusDepartment('09')">Ariège</button>
+            <button class="dept-btn dept-12" onclick="focusDepartment('12')">Aveyron</button>
+            <button class="dept-btn dept-31" onclick="focusDepartment('31')">Haute-Garonne</button>
+            <button class="dept-btn dept-32" onclick="focusDepartment('32')">Gers</button>
+            <button class="dept-btn dept-46" onclick="focusDepartment('46')">Lot</button>
+            <button class="dept-btn dept-65" onclick="focusDepartment('65')">Hautes-Pyrénées</button>
+            <button class="dept-btn dept-81" onclick="focusDepartment('81')">Tarn</button>
+            <button class="dept-btn dept-82" onclick="focusDepartment('82')">Tarn-et-Garonne</button>
+            <button class="dept-btn" onclick="showAllDepartments()">Tous</button>
+        </div>
+    </div>
+    
+    <!-- Zone navigation -->
+    <div class="zone-nav">
+        <div class="zone-title">Zones d'intérêt</div>
+        <div class="zone-list">
+            <div class="zone-item" onclick="goToZone('pyrenees')">🏔️ Pyrénées</div>
+            <div class="zone-item" onclick="goToZone('causses')">🏞️ Causses et Gorges</div>
+            <div class="zone-item" onclick="goToZone('montagne-noire')">🌲 Montagne Noire</div>
+            <div class="zone-item" onclick="goToZone('aubrac')">🌾 Aubrac</div>
+            <div class="zone-item" onclick="goToZone('regional')">📍 Vue régionale</div>
+        </div>
+    </div>
+    
+    <!-- Stats panel -->
+    <div class="stats-panel">
+        <div class="stats-title">Répartition des spots</div>
+        <div id="statsContent">
+            <div class="loading">Chargement...</div>
+        </div>
+    </div>
+    
+    <!-- Loading indicator -->
+    <div class="loading" id="loading">
+        <div>Chargement de la carte...</div>
+    </div>
+    
+    <!-- Map container -->
+    <div id="map"></div>
+    
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    
+    <script type="module">
+        import REGIONAL_CONFIG, { getDepartmentFromCoords, getRegionalStats } from './js/modules/regional-config.js';
+        
+        let map;
+        let spotsLayer;
+        let allSpots = [];
+        let currentDepartment = null;
+        
+        // Initialize map
+        function initMap() {
+            map = L.map('map', {
+                center: REGIONAL_CONFIG.center,
+                zoom: REGIONAL_CONFIG.defaultZoom,
+                zoomControl: true
+            });
+            
+            // IGN Satellite layer (best for France)
+            L.tileLayer(
+                'https://wxs.ign.fr/essentiels/geoportail/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=ORTHOIMAGERY.ORTHOPHOTOS&STYLE=normal&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=image/jpeg', {
+                    attribution: '<a target="_blank" href="https://www.geoportail.gouv.fr/">IGN-Géoportail</a>',
+                    maxZoom: 19
+                }
+            ).addTo(map);
+            
+            // Load spots
+            loadSpots();
+            
+            // Hide loading
+            document.getElementById('loading').classList.add('hidden');
+        }
+        
+        // Load spots from API
+        async function loadSpots() {
+            try {
+                const response = await fetch('http://localhost:8000/api/spots?limit=5000');
+                const data = await response.json();
+                allSpots = data.spots;
+                
+                displaySpots(allSpots);
+                updateStats(allSpots);
+                
+            } catch (error) {
+                console.error('Error loading spots:', error);
+            }
+        }
+        
+        // Display spots on map
+        function displaySpots(spots) {
+            if (spotsLayer) {
+                map.removeLayer(spotsLayer);
+            }
+            
+            spotsLayer = L.markerClusterGroup({
+                chunkedLoading: true,
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                maxClusterRadius: 50
+            });
+            
+            spots.forEach(spot => {
+                const dept = getDepartmentFromCoords(spot.latitude, spot.longitude);
+                const deptInfo = REGIONAL_CONFIG.departments[dept];
+                
+                const icon = L.divIcon({
+                    html: `<div style="background: ${deptInfo.color}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
+                    className: 'custom-marker',
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8]
+                });
+                
+                const marker = L.marker([spot.latitude, spot.longitude], { icon })
+                    .bindPopup(`
+                        <div class="spot-popup">
+                            <div class="popup-header">${spot.name || 'Spot Secret'}</div>
+                            <div class="popup-dept dept-${deptInfo.code}">${deptInfo.name}</div>
+                            <div class="popup-coords">📍 ${spot.latitude.toFixed(5)}, ${spot.longitude.toFixed(5)}</div>
+                        </div>
+                    `);
+                
+                spotsLayer.addLayer(marker);
+            });
+            
+            map.addLayer(spotsLayer);
+        }
+        
+        // Update statistics
+        function updateStats(spots) {
+            const stats = getRegionalStats(spots);
+            const statsContent = document.getElementById('statsContent');
+            
+            let html = '';
+            Object.keys(stats).forEach(deptKey => {
+                const stat = stats[deptKey];
+                const deptInfo = REGIONAL_CONFIG.departments[deptKey];
+                
+                html += `
+                    <div class="stat-item">
+                        <span class="stat-dept">${stat.name}</span>
+                        <span class="stat-count">${stat.count} (${stat.percentage}%)</span>
+                    </div>
+                    <div class="stat-bar">
+                        <div class="stat-fill dept-${deptInfo.code}" style="width: ${stat.percentage}%"></div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                <div class="stat-item" style="margin-top: 10px; padding-top: 10px; border-top: 2px solid #e5e7eb;">
+                    <span class="stat-dept"><strong>Total</strong></span>
+                    <span class="stat-count"><strong>${spots.length} spots</strong></span>
+                </div>
+            `;
+            
+            statsContent.innerHTML = html;
+        }
+        
+        // Focus on department
+        window.focusDepartment = function(code) {
+            // Update button states
+            document.querySelectorAll('.dept-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            currentDepartment = code;
+            
+            // Find department info
+            const deptKey = Object.keys(REGIONAL_CONFIG.departments).find(
+                key => REGIONAL_CONFIG.departments[key].code === code
+            );
+            const deptInfo = REGIONAL_CONFIG.departments[deptKey];
+            
+            // Filter spots
+            const deptSpots = allSpots.filter(spot => {
+                const spotDept = getDepartmentFromCoords(spot.latitude, spot.longitude);
+                return REGIONAL_CONFIG.departments[spotDept]?.code === code;
+            });
+            
+            // Update display
+            displaySpots(deptSpots);
+            
+            // Zoom to department
+            map.setView(deptInfo.center, 10);
+        };
+        
+        // Show all departments
+        window.showAllDepartments = function() {
+            document.querySelectorAll('.dept-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            currentDepartment = null;
+            displaySpots(allSpots);
+            map.setView(REGIONAL_CONFIG.center, REGIONAL_CONFIG.defaultZoom);
+        };
+        
+        // Go to zone
+        window.goToZone = function(zone) {
+            switch(zone) {
+                case 'pyrenees':
+                    map.setView([42.8, 0.5], 9);
+                    break;
+                case 'causses':
+                    map.setView([44.3, 3.0], 9);
+                    break;
+                case 'montagne-noire':
+                    map.setView([43.5, 2.25], 10);
+                    break;
+                case 'aubrac':
+                    map.setView([44.6, 2.9], 10);
+                    break;
+                case 'regional':
+                default:
+                    map.setView(REGIONAL_CONFIG.center, REGIONAL_CONFIG.defaultZoom);
+            }
+        };
+        
+        // Initialize
+        initMap();
+    </script>
+</body>
+</html>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPOTS - Sun & Shadow Calculator (Working with IGN Elevation)</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
+        
+        .info-header {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        
+        .info-header h3 {
+            margin: 0;
+            color: #2c3e50;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-left: 10px;
+        }
+        
+        .status-ok { background: #27ae60; }
+        .status-error { background: #e74c3c; }
+        
+        .leaflet-control-zoom {
+            margin-top: 70px !important;
+        }
+        
+        .demo-info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            max-width: 300px;
+        }
+        
+        .elevation-display {
+            background: #f8f9fa;
+            padding: 5px 10px;
+            border-radius: 3px;
+            margin-top: 10px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="info-header">
+        <h3>☀️ Calculateur Soleil/Ombre avec Élévation IGN</h3>
+        <small>API Status: <span id="api-status" class="status-indicator status-error"></span></small>
+    </div>
+
+    <div id="map"></div>
+    
+    <div class="demo-info">
+        <strong>📍 Spots de démonstration:</strong>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+            <li>Pic du Midi de Bigorre (2877m)</li>
+            <li>Cascade d'Ars (1380m)</li>
+            <li>Grotte de Lombrives (650m)</li>
+        </ul>
+        <small>💡 Cliquez sur la carte pour voir l'élévation IGN</small>
+        <div id="click-elevation" class="elevation-display">
+            Cliquez pour l'élévation...
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- SunCalc -->
+    <script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
+    
+    <script type="module">
+        // Test API connection first
+        async function testAPI() {
+            try {
+                const response = await fetch('http://localhost:8000/health');
+                const data = await response.json();
+                document.getElementById('api-status').className = 'status-indicator status-ok';
+                console.log('API connected:', data);
+                return true;
+            } catch (error) {
+                console.error('API connection failed:', error);
+                return false;
+            }
+        }
+        
+        // Initialize map
+        const map = L.map('map', {
+            center: [43.0, 0.5], // Center on Pyrenees
+            zoom: 9,
+            preferCanvas: true
+        });
+        
+        // Add IGN base layer with terrain
+        const ignTerrain = L.tileLayer('https://data.geopf.fr/wmts?' +
+            'SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&' +
+            'LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS&STYLE=normal&' +
+            'TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&' +
+            'FORMAT=image/jpeg', {
+            attribution: '© IGN',
+            maxZoom: 18
+        }).addTo(map);
+        
+        // Import and initialize the enhanced calculator
+        import EnhancedSunShadowCalculator from './js/modules/sun-shadow-enhanced.js';
+        
+        const apiConnected = await testAPI();
+        
+        if (apiConnected) {
+            const sunCalc = new EnhancedSunShadowCalculator(map);
+            await sunCalc.init();
+            
+            // Add demo spots with real elevations
+            const demoSpots = [
+                { 
+                    name: 'Pic du Midi de Bigorre', 
+                    lat: 42.9367, 
+                    lng: 0.1403, 
+                    type: '🏔️',
+                    expectedElevation: 2877
+                },
+                { 
+                    name: 'Cascade d\'Ars', 
+                    lat: 42.8086, 
+                    lng: 1.3928, 
+                    type: '💧',
+                    expectedElevation: 1380
+                },
+                { 
+                    name: 'Grotte de Lombrives', 
+                    lat: 42.8239, 
+                    lng: 1.6147, 
+                    type: '🕳️',
+                    expectedElevation: 650
+                }
+            ];
+            
+            // Add markers for demo spots
+            for (const spot of demoSpots) {
+                const marker = L.marker([spot.lat, spot.lng], {
+                    icon: L.divIcon({
+                        className: 'custom-div-icon',
+                        html: `<div style="font-size: 24px; text-align: center;">${spot.type}</div>`,
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 15]
+                    })
+                }).addTo(map);
+                
+                // Get real elevation from API
+                const response = await fetch('http://localhost:8000/api/mapping/elevation', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        latitude: spot.lat,
+                        longitude: spot.lng
+                    })
+                });
+                
+                const elevData = await response.json();
+                
+                marker.bindPopup(`
+                    <strong>${spot.name}</strong><br>
+                    Élévation IGN: ${elevData.elevation}m<br>
+                    <small>Lat: ${spot.lat.toFixed(4)}, Lng: ${spot.lng.toFixed(4)}</small>
+                `);
+            }
+            
+            // Click handler for elevation display
+            map.on('click', async (e) => {
+                const elevDisplay = document.getElementById('click-elevation');
+                elevDisplay.innerHTML = 'Chargement...';
+                
+                try {
+                    const response = await fetch('http://localhost:8000/api/mapping/elevation', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            latitude: e.latlng.lat,
+                            longitude: e.latlng.lng
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    elevDisplay.innerHTML = `
+                        📍 ${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}<br>
+                        📏 Élévation: <strong>${data.elevation}m</strong><br>
+                        <small>Source: ${data.source || 'IGN'}</small>
+                    `;
+                } catch (error) {
+                    elevDisplay.innerHTML = '❌ Erreur de chargement';
+                }
+            });
+            
+            // Initial view animation
+            setTimeout(() => {
+                map.setView([42.9367, 0.1403], 12, {
+                    animate: true,
+                    duration: 2
+                });
+            }, 1000);
+            
+        } else {
+            // Fallback if API is not connected
+            alert('⚠️ API non connectée. Démarrez le serveur avec:\nuvicorn src.backend.main:app --reload');
+            
+            // Still show the map
+            L.control.zoom({ position: 'topleft' }).addTo(map);
+        }
+        
+        // Make map globally accessible
+        window.spotsMap = map;
+    </script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+{
+  "timestamp": "2025-08-05T10:05:30.560Z",
+  "summary": {
+    "total": 8,
+    "passed": 7,
+    "failed": 1
+  },
+  "tests": [
+    {
+      "name": "Default Layer",
+      "passed": true,
+      "errors": [],
+      "details": {
+        "center": {
+          "lat": 43.8927,
+          "lng": 1.8827
+        },
+        "zoom": 8,
+        "bounds": {
+          "_southWest": {
+            "lat": 41.840920397579964,
+            "lng": -3.3892822265625004
+          },
+          "_northEast": {
+            "lat": 45.87853662114514,
+            "lng": 7.1575927734375
+          }
+        },
+        "hasTileLayer": true,
+        "tileUrl": "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=image/png"
+      }
+    },
+    {
+      "name": "Layer Panel",
+      "passed": true,
+      "errors": [],
+      "details": {
+        "isVisible": true,
+        "panelHeight": 1020,
+        "layerButtons": [
+          {
+            "text": "🗺️ IGN Plan",
+            "isActive": true,
+            "dataLayer": "ign"
+          },
+          {
+            "text": "🌍 OSM",
+            "isActive": false,
+            "dataLayer": "osm"
+          },
+          {
+            "text": "🛰️ Satellite",
+            "isActive": false,
+            "dataLayer": "satellite"
+          },
+          {
+            "text": "⛰️ Terrain",
+            "isActive": false,
+            "dataLayer": "terrain"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Switch to IGN",
+      "passed": true,
+      "errors": [],
+      "details": {
+        "tileUrl": "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=image/png",
+        "tileLayerCount": 1,
+        "activeButtonText": "🗺️ IGN Plan",
+        "mapCenter": {
+          "lat": 43.8927,
+          "lng": 1.8827
+        },
+        "mapZoom": 8
+      }
+    },
+    {
+      "name": "Switch to OSM",
+      "passed": true,
+      "errors": [],
+      "details": {
+        "tileUrl": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "tileLayerCount": 1,
+        "activeButtonText": "🌍 OSM",
+        "mapCenter": {
+          "lat": 43.8927,
+          "lng": 1.8827
+        },
+        "mapZoom": 8
+      }
+    },
+    {
+      "name": "Switch to Satellite",
+      "passed": true,
+      "errors": [],
+      "details": {
+        "tileUrl": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        "tileLayerCount": 1,
+        "activeButtonText": "🛰️ Satellite",
+        "mapCenter": {
+          "lat": 43.8927,
+          "lng": 1.8827
+        },
+        "mapZoom": 8
+      }
+    },
+    {
+      "name": "Switch to Terrain",
+      "passed": true,
+      "errors": [],
+      "details": {
+        "tileUrl": "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+        "tileLayerCount": 1,
+        "activeButtonText": "⛰️ Terrain",
+        "mapCenter": {
+          "lat": 43.8927,
+          "lng": 1.8827
+        },
+        "mapZoom": 8
+      }
+    },
+    {
+      "name": "Layer Persistence",
+      "passed": true,
+      "errors": [],
+      "details": {
+        "initialState": "🛰️ Satellite",
+        "finalState": "🛰️ Satellite"
+      }
+    },
+    {
+      "name": "Layer Performance",
+      "passed": false,
+      "errors": [
+        "Node is either not clickable or not an Element"
+      ],
+      "details": {}
+    }
+  ],
+  "tileServers": {
+    "unknown": {},
+    "OSM": {},
+    "Satellite": {},
+    "Terrain": {}
+  }
+}

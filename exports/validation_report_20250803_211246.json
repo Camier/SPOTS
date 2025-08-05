@@ -1,0 +1,16 @@
+{
+  "validation_date": "2025-08-03T21:12:46.296249",
+  "total_files": 6,
+  "valid_files": [
+    "instagram_spots_validated_20250803_211240.json",
+    "instagram_spots_validated_20250803_211133.json"
+  ],
+  "invalid_files": [
+    "instagram_spots_enriched_ign_20250803_202720.json",
+    "instagram_spots_enriched_ign_demo_20250803_202841.json",
+    "validation_report_20250803_210650.json",
+    "instagram_spots_20250803_195033.json"
+  ],
+  "error_count": 0,
+  "sample_errors": []
+}

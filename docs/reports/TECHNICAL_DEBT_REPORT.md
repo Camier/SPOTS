@@ -1,0 +1,166 @@
+# Technical Debt Report - SPOTS Project
+Generated: Monday, August 04, 2025 - 07:10 CEST
+
+## 📊 Executive Summary
+Overall debt level: **MODERATE** (6.5/10)
+- No critical TODO/FIXME/HACK comments found
+- Several overly complex files (>500 lines)
+- Multiple scraper implementations with duplicated logic
+- Dependencies are up to date
+- Legacy code references in 3 locations
+
+## 🚨 Priority 1: Overly Complex Files (Refactor Candidates)
+
+### Files Exceeding 500 Lines:
+1. **`ign_downloader.py`** (625 lines) 🔴
+   - Newly added file
+   - Consider splitting into: IGNClient, DataProcessor, ReprojectionHandler
+   
+2. **`instagram_playwright_scraper.py`** (592 lines) 🔴
+   - Complex browser automation logic
+   - Extract: BrowserManager, DataExtractor, ErrorHandler classes
+
+3. **`social_media_schemas.py`** (522 lines) 🟡
+   - Large validation schema file
+   - Split by platform: instagram_schemas.py, facebook_schemas.py, etc.
+
+4. **`app-ui-management.js`** (521 lines) 🟡
+   - Frontend UI management
+   - Modularize: UIComponents, EventHandlers, StateManager
+
+5. **`instagram_real_scraper.py`** (510 lines) 🟡
+   - Another Instagram scraper variant
+   - Consolidation opportunity
+
+## 🔄 Priority 2: Code Duplication Issues
+
+### Duplicate Scraper Implementations:
+```
+Instagram Scrapers (5 variants!):
+- InstagramPlaywrightScraper
+- ValidatedInstagramScraper  
+- AlternativeInstagramScraper
+- RealInstagramScraper
+- RealtimeInstagramScraper
+
+Facebook Scrapers (3 variants):
+- FacebookPlaywrightScraper
+- FacebookPuppeteerScraper
+- FacebookRealScraper
+
+Reddit Scrapers (3 variants):
+- UnifiedRedditScraper (2 identical!)
+- EnhancedRedditScraper
+- FrenchRedditScraper
+```
+
+**Recommendation**: Create unified scraper architecture with strategy pattern
+
+### Duplicate Geocoding Logic:
+```
+Geocoding Implementations (6 variants):
+- geocode_address() in 3 files
+- geocode_occitanie() in 4 files  
+- geocode_premium() in 1 file
+- validate_and_normalize() in 2 files
+```
+
+**Recommendation**: Consolidate into single GeocodingService with providers
+
+## 🏛️ Priority 3: Legacy Code References
+
+### Files with Legacy Mentions:
+1. **`mapping_france.py`** (3 references)
+   ```python
+   Line 34: precision: Optional[str] = Field(None, description="Service used: premium, ban, or legacy")
+   Line 61: Priority: ADRESSE-PREMIUM (if enabled) -> BAN -> Legacy BAN
+   Line 369: "name": "Legacy BAN API",
+   ```
+
+2. **`geocoding_france.py`** (5 references)
+   - Still supports "legacy BAN endpoint" as fallback
+   - Consider removing if new endpoints are stable
+
+3. **`app-initialization.js`** (2 references)
+   ```javascript
+   Line 144: // Make services available globally for popup callbacks and legacy code
+   Line 153: // Legacy compatibility
+   ```
+
+## 📦 Priority 4: Dependencies Health
+
+### Python Dependencies:
+✅ All dependencies appear current (as of Jan 2025)
+- Notable: Using latest versions of key libraries
+- `numpy==2.2.1` (latest)
+- `pandas==2.2.0` (latest)
+- `playwright==1.41.1` (recent)
+
+### JavaScript Dependencies:
+✅ Minimal dependencies (good!)
+- `leaflet@1.9.4` (current)
+- `leaflet.markercluster@1.5.3` (current)
+
+## 🏗️ Priority 5: Architectural Debt
+
+### Multiple Map Implementations:
+```
+11 different map HTML files:
+- enhanced-map.html
+- enhanced-map-ign.html
+- enhanced-map-ign-advanced.html ← Primary
+- enhanced-map-secure.html
+- optimized-map.html
+- debug-map.html
+- test-ign-layers.html
+- test-map-tiles.html
+- premium-map.html
+- regional-map.html
+- ign-official-map.html
+```
+
+**Recommendation**: Keep only production versions, archive others
+
+### Test Configuration Issues:
+- E2E tests using CommonJS `require()` in ESM environment
+- Tests failing due to missing global `describe` function
+- Consider migrating to proper Vitest configuration
+
+## 📝 Actionable Recommendations
+
+### Immediate Actions (This Week):
+1. **Fix E2E test configuration** - Tests are broken
+2. **Consolidate scraper implementations** - Too many variants
+3. **Archive old map HTML files** - Keep only 2-3 production versions
+
+### Short Term (This Month):
+1. **Refactor large files** - Split files >500 lines
+2. **Create unified GeocodingService** - Eliminate duplication
+3. **Remove legacy BAN fallbacks** - If stable
+
+### Long Term (Next Quarter):
+1. **Implement scraper strategy pattern** - One scraper, multiple strategies
+2. **Modularize frontend JavaScript** - Break up UI management
+3. **Create comprehensive test suite** - Fix configuration first
+
+## 📈 Debt Metrics
+
+| Category | Score | Trend |
+|----------|-------|-------|
+| Code Complexity | 6/10 | ⬇️ |
+| Duplication | 7/10 | ⬆️ |
+| Dependencies | 3/10 | ✅ |
+| Architecture | 6/10 | ➡️ |
+| Testing | 8/10 | ⬆️ |
+
+**Overall Technical Debt Score: 6.5/10** (Moderate)
+
+## 🎯 Quick Wins
+1. Delete duplicate `UnifiedRedditScraper` class
+2. Archive test/debug map HTML files
+3. Fix E2E test imports (ESM vs CommonJS)
+4. Extract constants from large files
+5. Remove commented-out code blocks
+
+---
+*Report generated by architecture debt scanner*

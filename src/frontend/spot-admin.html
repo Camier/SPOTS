@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPOTS Admin - Vérification des Spots</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .verified { color: #27ae60; }
+        .pending { color: #f39c12; }
+        .suspicious { color: #e74c3c; }
+        
+        .filters {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .filter-btn:hover {
+            background: #f0f0f0;
+        }
+        
+        .filter-btn.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        
+        .spot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .spot-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        
+        .spot-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .spot-header {
+            padding: 1rem;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .spot-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .spot-meta {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .spot-body {
+            padding: 1rem;
+        }
+        
+        .issue-list {
+            margin: 1rem 0;
+            padding: 0;
+            list-style: none;
+        }
+        
+        .issue {
+            padding: 0.5rem;
+            margin: 0.25rem 0;
+            background: #fee;
+            border-left: 3px solid #e74c3c;
+            font-size: 0.9rem;
+        }
+        
+        .issue.low { background: #fff3cd; border-color: #ffc107; }
+        .issue.medium { background: #ffe5cc; border-color: #ff9800; }
+        
+        .spot-actions {
+            padding: 1rem;
+            background: #f8f9fa;
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        
+        .btn-verify {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .btn-verify:hover {
+            background: #229954;
+        }
+        
+        .btn-reject {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-reject:hover {
+            background: #c0392b;
+        }
+        
+        .btn-edit {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-edit:hover {
+            background: #2980b9;
+        }
+        
+        .map-preview {
+            height: 150px;
+            background: #eee;
+            position: relative;
+        }
+        
+        .add-spot-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 2rem;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+        }
+        
+        .add-spot-btn:hover {
+            transform: scale(1.1);
+            background: #2980b9;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 600px;
+            margin: 2rem auto;
+            border-radius: 8px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .required {
+            color: #e74c3c;
+        }
+        
+        .help-text {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔍 SPOTS Admin - Vérification & Ajout Manuel</h1>
+    </div>
+    
+    <div class="container">
+        <!-- Statistics -->
+        <div class="stats">
+            <div class="stat-card">
+                <h3 class="verified">0</h3>
+                <p>Spots Vérifiés</p>
+            </div>
+            <div class="stat-card">
+                <h3 class="pending">0</h3>
+                <p>En Attente</p>
+            </div>
+            <div class="stat-card">
+                <h3 class="suspicious">0</h3>
+                <p>Suspects</p>
+            </div>
+            <div class="stat-card">
+                <h3>0</h3>
+                <p>Doublons</p>
+            </div>
+        </div>
+        
+        <!-- Filters -->
+        <div class="filters">
+            <button class="filter-btn active" data-filter="all">Tous</button>
+            <button class="filter-btn" data-filter="suspicious">❌ Suspects</button>
+            <button class="filter-btn" data-filter="needs_review">⚠️ À Vérifier</button>
+            <button class="filter-btn" data-filter="verified">✅ Vérifiés</button>
+            <select id="type-filter">
+                <option value="">Tous les types</option>
+                <option value="cascade">Cascades</option>
+                <option value="grotte">Grottes</option>
+                <option value="source">Sources</option>
+                <option value="ruine">Ruines</option>
+            </select>
+            <select id="source-filter">
+                <option value="">Toutes les sources</option>
+                <option value="osm">OpenStreetMap</option>
+                <option value="instagram">Instagram</option>
+                <option value="manual">Ajout manuel</option>
+            </select>
+        </div>
+        
+        <!-- Spots Grid -->
+        <div class="spot-grid" id="spots-grid">
+            <!-- Spots will be loaded here -->
+        </div>
+    </div>
+    
+    <!-- Add Spot Button -->
+    <button class="add-spot-btn" onclick="showAddSpotModal()">+</button>
+    
+    <!-- Add/Edit Spot Modal -->
+    <div class="modal" id="spot-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Ajouter un Spot</h2>
+                <button class="btn" onclick="hideModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="spot-form">
+                    <div class="form-group">
+                        <label>Nom du spot <span class="required">*</span></label>
+                        <input type="text" name="name" required>
+                        <p class="help-text">Nom précis et unique (ex: "Cascade du Voile de la Mariée")</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Type <span class="required">*</span></label>
+                        <select name="type" required>
+                            <option value="">Sélectionner...</option>
+                            <option value="cascade">💧 Cascade</option>
+                            <option value="grotte">🕳️ Grotte</option>
+                            <option value="source">💦 Source</option>
+                            <option value="ruine">🏚️ Ruine</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Description <span class="required">*</span></label>
+                        <textarea name="description" required placeholder="Description détaillée, accès, particularités..."></textarea>
+                        <p class="help-text">Minimum 50 caractères, soyez précis!</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Coordonnées GPS <span class="required">*</span></label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <input type="number" name="latitude" step="0.000001" placeholder="Latitude" required>
+                            <input type="number" name="longitude" step="0.000001" placeholder="Longitude" required>
+                        </div>
+                        <p class="help-text">Format décimal (ex: 43.604652, 1.444209)</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Département</label>
+                        <select name="department">
+                            <option value="">Sélectionner...</option>
+                            <option value="09">09 - Ariège</option>
+                            <option value="11">11 - Aude</option>
+                            <option value="12">12 - Aveyron</option>
+                            <option value="30">30 - Gard</option>
+                            <option value="31">31 - Haute-Garonne</option>
+                            <option value="32">32 - Gers</option>
+                            <option value="34">34 - Hérault</option>
+                            <option value="46">46 - Lot</option>
+                            <option value="48">48 - Lozère</option>
+                            <option value="65">65 - Hautes-Pyrénées</option>
+                            <option value="66">66 - Pyrénées-Orientales</option>
+                            <option value="81">81 - Tarn</option>
+                            <option value="82">82 - Tarn-et-Garonne</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Informations d'accès</label>
+                        <textarea name="access_info" placeholder="Comment accéder au spot? Parking, sentier, durée de marche..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Difficulté (1-5)</label>
+                        <input type="number" name="difficulty" min="1" max="5" placeholder="1 = Très facile, 5 = Très difficile">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Meilleure saison</label>
+                        <input type="text" name="best_season" placeholder="ex: Printemps, Après fortes pluies">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Source / Référence</label>
+                        <input type="text" name="source" placeholder="D'où vient cette information?">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" name="verified" value="true">
+                            Je certifie avoir visité personnellement ce spot
+                        </label>
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                        <button type="button" class="btn" onclick="hideModal()">Annuler</button>
+                        <button type="submit" class="btn btn-verify">Ajouter le Spot</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Sample data for now
+        const sampleSpots = [
+            {
+                id: 1,
+                name: "Grotte (Pyrénées) (Ariège) alt. 850.0m - montagne",
+                type: "grotte",
+                description: "",
+                source: "osm_caves",
+                issues: [
+                    { severity: "high", description: "Nom générique avec altitude" },
+                    { severity: "medium", description: "Pas de description" },
+                    { severity: "low", description: "Source OSM non vérifiée" }
+                ],
+                score: 0.3
+            },
+            {
+                id: 2,
+                name: "Cascade de la Vis",
+                type: "cascade",
+                description: "Magnifique cascade de 15m de hauteur dans un écrin de verdure. Accessible après 20 minutes de marche depuis le parking.",
+                source: "manual",
+                issues: [],
+                score: 0.9
+            }
+        ];
+        
+        function renderSpots(spots) {
+            const grid = document.getElementById('spots-grid');
+            grid.innerHTML = spots.map(spot => `
+                <div class="spot-card">
+                    <div class="spot-header">
+                        <div class="spot-title">${spot.name}</div>
+                        <div class="spot-meta">
+                            ${getTypeEmoji(spot.type)} ${spot.type} | Source: ${spot.source}
+                        </div>
+                    </div>
+                    <div class="spot-body">
+                        ${spot.description ? 
+                            `<p>${spot.description.substring(0, 100)}${spot.description.length > 100 ? '...' : ''}</p>` : 
+                            '<p style="color: #999;">Pas de description</p>'
+                        }
+                        ${spot.issues && spot.issues.length > 0 ? `
+                            <ul class="issue-list">
+                                ${spot.issues.map(issue => 
+                                    `<li class="issue ${issue.severity}">${issue.description}</li>`
+                                ).join('')}
+                            </ul>
+                        ` : ''}
+                        <div style="margin-top: 1rem;">
+                            <strong>Score qualité:</strong> 
+                            <span style="color: ${getScoreColor(spot.score)}">${Math.round(spot.score * 100)}%</span>
+                        </div>
+                    </div>
+                    <div class="map-preview" id="map-${spot.id}">
+                        <!-- Mini map would go here -->
+                    </div>
+                    <div class="spot-actions">
+                        <button class="btn btn-verify" onclick="verifySpot(${spot.id})">✅ Vérifier</button>
+                        <button class="btn btn-edit" onclick="editSpot(${spot.id})">✏️ Éditer</button>
+                        <button class="btn btn-reject" onclick="rejectSpot(${spot.id})">❌ Rejeter</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function getTypeEmoji(type) {
+            const emojis = {
+                cascade: '💧',
+                grotte: '🕳️',
+                source: '💦',
+                ruine: '🏚️'
+            };
+            return emojis[type] || '📍';
+        }
+        
+        function getScoreColor(score) {
+            if (score >= 0.7) return '#27ae60';
+            if (score >= 0.4) return '#f39c12';
+            return '#e74c3c';
+        }
+        
+        function showAddSpotModal() {
+            document.getElementById('spot-modal').style.display = 'block';
+        }
+        
+        function hideModal() {
+            document.getElementById('spot-modal').style.display = 'none';
+        }
+        
+        function verifySpot(id) {
+            if (confirm('Marquer ce spot comme vérifié?')) {
+                console.log('Verifying spot', id);
+                // API call to verify
+            }
+        }
+        
+        function editSpot(id) {
+            console.log('Editing spot', id);
+            showAddSpotModal();
+            // Load spot data into form
+        }
+        
+        function rejectSpot(id) {
+            if (confirm('Rejeter définitivement ce spot?')) {
+                console.log('Rejecting spot', id);
+                // API call to reject
+            }
+        }
+        
+        // Filter handling
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                // Apply filter
+            });
+        });
+        
+        // Form submission
+        document.getElementById('spot-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            
+            // Validate description length
+            if (data.description.length < 50) {
+                alert('La description doit faire au moins 50 caractères');
+                return;
+            }
+            
+            console.log('Adding spot:', data);
+            // API call to add spot
+            hideModal();
+        });
+        
+        // Initial render
+        renderSpots(sampleSpots);
+    </script>
+</body>
+</html>

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spots Secrets Occitanie - Optimized</title>
+    
+    <!-- Critical CSS inline -->
+    <style>
+        /* Critical above-the-fold styles */
+        body { margin: 0; font-family: Arial, sans-serif; }
+        #map { position: absolute; top: 60px; bottom: 0; width: 100%; }
+        #loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .header { height: 60px; background: #2c3e50; color: white; display: flex; align-items: center; padding: 0 20px; }
+        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/js/optimized-loader.js" as="script" type="module">
+    <link rel="preconnect" href="https://unpkg.com">
+    <link rel="preconnect" href="https://data.geopf.fr">
+    
+    <!-- Non-critical CSS deferred -->
+    <link rel="preload" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    
+    <!-- Fallback for browsers without preload support -->
+    <noscript>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+    </noscript>
+</head>
+<body>
+    <div class="header">
+        <h1 style="margin: 0; font-size: 1.5rem;">Spots Secrets Occitanie - Performance Optimized</h1>
+        <div style="margin-left: auto;">
+            <span id="spot-count">Loading...</span>
+        </div>
+    </div>
+    
+    <div id="map">
+        <div id="loading">
+            <div class="spinner"></div>
+            <p style="text-align: center; margin-top: 10px;">Loading map...</p>
+        </div>
+    </div>
+    
+    <!-- Filter controls (loaded dynamically) -->
+    <div id="controls" style="position: absolute; top: 70px; right: 10px; z-index: 1000;"></div>
+    
+    <!-- Optimized loading strategy -->
+    <script type="module">
+        import { loader } from '/js/optimized-loader.js';
+        
+        // Performance timing
+        const startTime = performance.now();
+        
+        // Load Leaflet first (critical)
+        await loader.deferScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js');
+        
+        // Initialize map immediately
+        const map = L.map('map', {
+            center: [43.6, 1.9],
+            zoom: 8,
+            preferCanvas: true, // Better performance for many markers
+            zoomControl: false // Add later for better mobile UX
+        });
+        
+        // Add zoom control after map loads
+        L.control.zoom({ position: 'topleft' }).addTo(map);
+        
+        // Load base tile layer (IGN)
+        const ignLayer = L.tileLayer('https://data.geopf.fr/wmts?' +
+            'SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&' +
+            'LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&' +
+            'TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&' +
+            'FORMAT=image/png', {
+            attribution: '© IGN',
+            maxZoom: 18,
+            tileSize: 256
+        }).addTo(map);
+        
+        // Hide loading spinner once map tiles start loading
+        ignLayer.once('loading', () => {
+            document.getElementById('loading').style.display = 'none';
+        });
+        
+        // Load MarkerCluster plugin asynchronously
+        const loadMarkerCluster = loader.deferScript(
+            'https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js'
+        );
+        
+        // Fetch spots data from API
+        async function loadSpots() {
+            try {
+                const response = await fetch('http://localhost:8000/api/spots/quality?limit=1000');
+                const data = await response.json();
+                return data.spots || [];
+            } catch (error) {
+                console.error('Failed to load spots:', error);
+                // Fallback to static data if API fails
+                try {
+                    const response = await fetch('/data/main/spots_map_data.json');
+                    return await response.json();
+                } catch (fallbackError) {
+                    console.error('Fallback also failed:', fallbackError);
+                    return [];
+                }
+            }
+        }
+        
+        // Load spots and marker cluster in parallel
+        const [spots, _] = await Promise.all([
+            loadSpots(),
+            loadMarkerCluster
+        ]);
+        
+        // Update spot count
+        document.getElementById('spot-count').textContent = `${spots.length} spots`;
+        
+        // Create marker cluster group with performance options
+        const markers = L.markerClusterGroup({
+            chunkedLoading: true,
+            chunkInterval: 50,
+            chunkDelay: 10,
+            maxClusterRadius: 50,
+            spiderfyOnMaxZoom: false,
+            showCoverageOnHover: false,
+            zoomToBoundsOnClick: true
+        });
+        
+        // Spot type icons (using emoji for performance)
+        const icons = {
+            cascade: '💧',
+            grotte: '🕳️',
+            source: '💦',
+            ruine: '🏚️',
+            default: '📍'
+        };
+        
+        // Add markers in chunks for better performance
+        const chunkSize = 100;
+        let currentChunk = 0;
+        
+        function addMarkerChunk() {
+            const start = currentChunk * chunkSize;
+            const end = Math.min(start + chunkSize, spots.length);
+            
+            for (let i = start; i < end; i++) {
+                const spot = spots[i];
+                const icon = L.divIcon({
+                    html: `<div style="font-size: 20px;">${icons[spot.type] || icons.default}</div>`,
+                    iconSize: [20, 20],
+                    className: 'custom-div-icon'
+                });
+                
+                const marker = L.marker([spot.latitude, spot.longitude], { icon });
+                
+                // Simple popup content
+                marker.bindPopup(`
+                    <b>${spot.name}</b><br>
+                    Type: ${spot.type}<br>
+                    ${spot.description ? spot.description.substring(0, 100) + '...' : ''}
+                `, { maxWidth: 200 });
+                
+                markers.addLayer(marker);
+            }
+            
+            currentChunk++;
+            
+            if (currentChunk * chunkSize < spots.length) {
+                requestAnimationFrame(addMarkerChunk);
+            } else {
+                // All markers added
+                map.addLayer(markers);
+                
+                // Load additional features after initial render
+                loadAdditionalFeatures();
+            }
+        }
+        
+        // Start adding markers
+        requestAnimationFrame(addMarkerChunk);
+        
+        // Load non-critical features
+        async function loadAdditionalFeatures() {
+            // Load filter controls
+            const controlsModule = await loader.loadModule('/js/modules/filter-controls.js');
+            if (controlsModule.initializeControls) {
+                controlsModule.initializeControls(map, markers, spots);
+            }
+            
+            // Report performance metrics
+            const loadTime = performance.now() - startTime;
+            console.log(`Total load time: ${loadTime.toFixed(0)}ms`);
+            
+            // Send to analytics if available
+            if (window.gtag) {
+                gtag('event', 'page_load_time', {
+                    value: Math.round(loadTime),
+                    page_path: '/regional-map-optimized.html'
+                });
+            }
+        }
+        
+        // Service Worker for offline support (if supported)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(() => {
+                // Service worker registration failed, continue without it
+            });
+        }
+    </script>
+    
+    <!-- Non-critical styles -->
+    <style>
+        .custom-div-icon {
+            background: transparent;
+            border: none;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .leaflet-popup-content {
+            margin: 10px;
+            line-height: 1.4;
+        }
+        
+        #controls {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .filter-btn {
+            display: block;
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: background 0.2s;
+        }
+        
+        .filter-btn:hover {
+            background: #f0f0f0;
+        }
+        
+        .filter-btn.active {
+            background: #3498db;
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.2rem;
+            }
+            
+            #controls {
+                top: auto;
+                bottom: 10px;
+                right: 10px;
+            }
+        }
+    </style>
+</body>
+</html>

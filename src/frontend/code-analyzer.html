@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPOTS Code Analyzer - AI-Powered Code Improvement</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 0 20px;
+        }
+        
+        .panel {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+        
+        .panel h2 {
+            margin-bottom: 20px;
+            color: #2a5298;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .code-input {
+            width: 100%;
+            min-height: 300px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+            background: #f8f9fa;
+        }
+        
+        .code-input:focus {
+            outline: none;
+            border-color: #2a5298;
+        }
+        
+        .language-select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+        }
+        
+        .analyze-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .analyze-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .quick-btn {
+            padding: 8px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        
+        .quick-btn:hover {
+            background: #f0f0f0;
+            border-color: #2a5298;
+        }
+        
+        .results-container {
+            display: none;
+        }
+        
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #2a5298;
+        }
+        
+        .metric-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        .issue-list {
+            margin-top: 20px;
+        }
+        
+        .issue-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #e0e0e0;
+            transition: all 0.2s;
+        }
+        
+        .issue-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .issue-security {
+            border-left-color: #e74c3c;
+            background: #fff5f5;
+        }
+        
+        .issue-warning {
+            border-left-color: #f39c12;
+            background: #fffbf0;
+        }
+        
+        .issue-style {
+            border-left-color: #3498db;
+            background: #f0f8ff;
+        }
+        
+        .issue-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        
+        .issue-type {
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.8em;
+        }
+        
+        .issue-line {
+            font-size: 0.8em;
+            color: #666;
+        }
+        
+        .suggestion-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .suggestion-box h3 {
+            margin-bottom: 10px;
+        }
+        
+        .suggestion-list {
+            list-style: none;
+        }
+        
+        .suggestion-list li {
+            padding: 5px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .suggestion-list li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0,0,0,0.1);
+            border-left-color: #2a5298;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .health-report {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .health-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .health-good { background: #27ae60; }
+        .health-fair { background: #f39c12; }
+        .health-poor { background: #e74c3c; }
+        
+        .file-upload {
+            border: 2px dashed #e0e0e0;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            margin: 20px 0;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .file-upload:hover {
+            border-color: #2a5298;
+            background: #f8f9fa;
+        }
+        
+        .file-upload.dragover {
+            border-color: #667eea;
+            background: #f0f0ff;
+        }
+        
+        pre {
+            background: #2d2d2d;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        
+        code {
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .panel {
+                max-height: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔍 SPOTS Code Analyzer</h1>
+        <p>AI-Powered Code Analysis & Improvement Tool</p>
+    </div>
+    
+    <div class="container">
+        <!-- Input Panel -->
+        <div class="panel">
+            <h2>
+                <span>📝</span>
+                Code Input
+            </h2>
+            
+            <div class="file-upload" id="fileUpload">
+                <p>📁 Drag & drop a file here or click to upload</p>
+                <input type="file" id="fileInput" style="display: none" accept=".py,.js,.ts,.jsx,.tsx,.html,.css">
+            </div>
+            
+            <select class="language-select" id="languageSelect">
+                <option value="python">Python</option>
+                <option value="javascript">JavaScript</option>
+                <option value="typescript">TypeScript</option>
+                <option value="html">HTML</option>
+                <option value="css">CSS</option>
+            </select>
+            
+            <textarea class="code-input" id="codeInput" placeholder="Paste your code here or upload a file..."></textarea>
+            
+            <button class="analyze-btn" id="analyzeBtn" onclick="analyzeCode()">
+                🤖 Analyze Code
+            </button>
+            
+            <div class="quick-actions">
+                <button class="quick-btn" onclick="analyzeProjectFile('src/backend/services/ign_wfs_service.py')">
+                    WFS Service
+                </button>
+                <button class="quick-btn" onclick="analyzeProjectFile('src/frontend/js/ign-wfs-client.js')">
+                    WFS Client
+                </button>
+                <button class="quick-btn" onclick="getHealthReport()">
+                    Health Report
+                </button>
+                <button class="quick-btn" onclick="getMetrics('backend')">
+                    Backend Metrics
+                </button>
+                <button class="quick-btn" onclick="getMetrics('frontend')">
+                    Frontend Metrics
+                </button>
+                <button class="quick-btn" onclick="loadExample()">
+                    Load Example
+                </button>
+            </div>
+        </div>
+        
+        <!-- Results Panel -->
+        <div class="panel">
+            <h2>
+                <span>📊</span>
+                Analysis Results
+            </h2>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analyzing code with AI models...</p>
+            </div>
+            
+            <div class="results-container" id="results">
+                <!-- Metrics -->
+                <div class="metric-grid" id="metrics"></div>
+                
+                <!-- AI Suggestions -->
+                <div class="suggestion-box" id="suggestions" style="display: none;">
+                    <h3>🤖 AI Suggestions</h3>
+                    <ul class="suggestion-list" id="suggestionList"></ul>
+                </div>
+                
+                <!-- Issues -->
+                <div class="issue-list" id="issues"></div>
+                
+                <!-- Security Analysis -->
+                <div id="security" style="margin-top: 20px;"></div>
+                
+                <!-- Documentation Analysis -->
+                <div id="documentation" style="margin-top: 20px;"></div>
+                
+                <!-- Health Report -->
+                <div class="health-report" id="healthReport" style="display: none;"></div>
+                
+                <!-- Improved Code -->
+                <div id="improvedCode" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script>
+        // File upload handling
+        const fileUpload = document.getElementById('fileUpload');
+        const fileInput = document.getElementById('fileInput');
+        const codeInput = document.getElementById('codeInput');
+        const languageSelect = document.getElementById('languageSelect');
+        
+        fileUpload.addEventListener('click', () => fileInput.click());
+        
+        fileUpload.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUpload.classList.add('dragover');
+        });
+        
+        fileUpload.addEventListener('dragleave', () => {
+            fileUpload.classList.remove('dragover');
+        });
+        
+        fileUpload.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUpload.classList.remove('dragover');
+            
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                readFile(file);
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                readFile(file);
+            }
+        });
+        
+        function readFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                codeInput.value = e.target.result;
+                
+                // Auto-detect language
+                const ext = file.name.split('.').pop().toLowerCase();
+                const langMap = {
+                    'py': 'python',
+                    'js': 'javascript',
+                    'ts': 'typescript',
+                    'jsx': 'javascript',
+                    'tsx': 'typescript',
+                    'html': 'html',
+                    'css': 'css'
+                };
+                
+                if (langMap[ext]) {
+                    languageSelect.value = langMap[ext];
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        async function analyzeCode() {
+            const code = codeInput.value.trim();
+            if (!code) {
+                alert('Please enter some code to analyze');
+                return;
+            }
+            
+            const language = languageSelect.value;
+            
+            showLoading(true);
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/code/suggest-improvements', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        code: code,
+                        language: language
+                    })
+                });
+                
+                const data = await response.json();
+                displayResults(data, code, language);
+                
+            } catch (error) {
+                console.error('Analysis error:', error);
+                alert('Error analyzing code: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        async function analyzeProjectFile(filePath) {
+            showLoading(true);
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/code/analyze-project-file', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        file_path: filePath
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.analysis) {
+                    displayFileAnalysis(data);
+                }
+                
+            } catch (error) {
+                console.error('Project file analysis error:', error);
+                alert('Error analyzing project file');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        async function getHealthReport() {
+            showLoading(true);
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/code/code-health-report');
+                const data = await response.json();
+                
+                displayHealthReport(data);
+                
+            } catch (error) {
+                console.error('Health report error:', error);
+                alert('Error getting health report');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        async function getMetrics(module) {
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`http://localhost:8000/api/code/code-metrics/${module}`);
+                const data = await response.json();
+                
+                displayModuleMetrics(data);
+                
+            } catch (error) {
+                console.error('Metrics error:', error);
+                alert('Error getting metrics');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        function displayResults(data, code, language) {
+            const results = document.getElementById('results');
+            results.style.display = 'block';
+            
+            // Display AI suggestions
+            if (data.ai_suggestions && data.ai_suggestions.length > 0) {
+                const suggestionsBox = document.getElementById('suggestions');
+                const suggestionList = document.getElementById('suggestionList');
+                
+                suggestionList.innerHTML = data.ai_suggestions
+                    .map(s => `<li>${s}</li>`)
+                    .join('');
+                
+                suggestionsBox.style.display = 'block';
+            }
+            
+            // Display security analysis
+            if (data.security_analysis) {
+                const securityDiv = document.getElementById('security');
+                const vulns = data.security_analysis.vulnerabilities || [];
+                
+                if (vulns.length > 0) {
+                    securityDiv.innerHTML = `
+                        <h3>🔐 Security Analysis</h3>
+                        <p>Risk Level: <strong>${data.security_analysis.risk_level.toUpperCase()}</strong></p>
+                        ${vulns.map(v => `
+                            <div class="issue-item issue-security">
+                                <div class="issue-header">
+                                    <span class="issue-type">${v.type}</span>
+                                    <span class="issue-line">Line ${v.line}</span>
+                                </div>
+                                <p>${v.description}</p>
+                            </div>
+                        `).join('')}
+                    `;
+                } else {
+                    securityDiv.innerHTML = `
+                        <h3>🔐 Security Analysis</h3>
+                        <p>✅ No security vulnerabilities detected</p>
+                    `;
+                }
+            }
+            
+            // Display refactoring opportunities
+            if (data.refactoring_opportunities && data.refactoring_opportunities.length > 0) {
+                const issuesDiv = document.getElementById('issues');
+                issuesDiv.innerHTML = `
+                    <h3>🔧 Refactoring Opportunities</h3>
+                    ${data.refactoring_opportunities.map(r => `
+                        <div class="issue-item issue-style">
+                            <div class="issue-header">
+                                <span class="issue-type">${r.type}</span>
+                                <span>${r.target}</span>
+                            </div>
+                            <p><strong>${r.reason}</strong></p>
+                            <p>${r.suggestion}</p>
+                        </div>
+                    `).join('')}
+                `;
+            }
+            
+            // Display improved code suggestion
+            const improvedDiv = document.getElementById('improvedCode');
+            improvedDiv.innerHTML = `
+                <h3>💡 Code Preview</h3>
+                <pre><code class="language-${language}">${escapeHtml(code)}</code></pre>
+            `;
+            
+            // Re-highlight code
+            Prism.highlightAll();
+        }
+        
+        function displayFileAnalysis(data) {
+            const results = document.getElementById('results');
+            results.style.display = 'block';
+            
+            const analysis = data.analysis;
+            
+            // Display metrics
+            const metricsDiv = document.getElementById('metrics');
+            metricsDiv.innerHTML = `
+                <div class="metric-card">
+                    <div class="metric-value">${analysis.lines || 0}</div>
+                    <div class="metric-label">Lines of Code</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${analysis.complexity || 0}</div>
+                    <div class="metric-label">Complexity</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${analysis.issues?.length || 0}</div>
+                    <div class="metric-label">Issues Found</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${Math.round((analysis.documentation?.comment_density || 0) * 100)}%</div>
+                    <div class="metric-label">Documentation</div>
+                </div>
+            `;
+            
+            // Display issues
+            if (analysis.issues && analysis.issues.length > 0) {
+                const issuesDiv = document.getElementById('issues');
+                issuesDiv.innerHTML = `
+                    <h3>📋 Issues Found</h3>
+                    ${analysis.issues.map(issue => `
+                        <div class="issue-item issue-${issue.type}">
+                            <div class="issue-header">
+                                <span class="issue-type">${issue.type}</span>
+                                <span class="issue-line">Line ${issue.line}</span>
+                            </div>
+                            <p>${issue.message}</p>
+                        </div>
+                    `).join('')}
+                `;
+            }
+            
+            // Display AI suggestions
+            if (analysis.ai_suggestions && analysis.ai_suggestions.length > 0) {
+                const suggestionsBox = document.getElementById('suggestions');
+                const suggestionList = document.getElementById('suggestionList');
+                
+                suggestionList.innerHTML = analysis.ai_suggestions
+                    .map(s => `<li>${s}</li>`)
+                    .join('');
+                
+                suggestionsBox.style.display = 'block';
+            }
+        }
+        
+        function displayHealthReport(data) {
+            const healthReport = document.getElementById('healthReport');
+            healthReport.style.display = 'block';
+            
+            const healthClass = {
+                'good': 'health-good',
+                'fair': 'health-fair',
+                'needs_attention': 'health-poor'
+            }[data.overall_health] || 'health-fair';
+            
+            healthReport.innerHTML = `
+                <h3>
+                    <span class="health-indicator ${healthClass}"></span>
+                    Code Health Report
+                </h3>
+                <p><strong>Overall Health:</strong> ${data.overall_health.replace('_', ' ').toUpperCase()}</p>
+                <p><strong>Files Analyzed:</strong> ${data.files_analyzed}</p>
+                <p><strong>Total Issues:</strong> ${data.total_issues}</p>
+                <p><strong>Security Vulnerabilities:</strong> ${data.security_vulnerabilities}</p>
+                
+                <h4 style="margin-top: 20px;">Module Details</h4>
+                ${data.modules.map(m => `
+                    <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 6px;">
+                        <strong>${m.file}</strong>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 5px; font-size: 0.9em;">
+                            <div>Language: ${m.language}</div>
+                            <div>Lines: ${m.lines}</div>
+                            <div>Issues: ${m.issues_count}</div>
+                            <div>Security: ${m.security_risk}</div>
+                            <div>Docs: ${Math.round(m.documentation_coverage * 100)}%</div>
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+            
+            // Clear other sections
+            document.getElementById('metrics').innerHTML = '';
+            document.getElementById('issues').innerHTML = '';
+            document.getElementById('suggestions').style.display = 'none';
+        }
+        
+        function displayModuleMetrics(data) {
+            const results = document.getElementById('results');
+            results.style.display = 'block';
+            
+            const metricsDiv = document.getElementById('metrics');
+            metricsDiv.innerHTML = `
+                <div class="metric-card">
+                    <div class="metric-value">${data.total_files}</div>
+                    <div class="metric-label">Total Files</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${data.total_lines.toLocaleString()}</div>
+                    <div class="metric-label">Total Lines</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${Math.round(data.documentation.coverage_percent)}%</div>
+                    <div class="metric-label">Doc Coverage</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${Object.keys(data.languages).join(', ')}</div>
+                    <div class="metric-label">Languages</div>
+                </div>
+            `;
+            
+            // Clear other sections
+            document.getElementById('issues').innerHTML = '';
+            document.getElementById('suggestions').style.display = 'none';
+            document.getElementById('healthReport').style.display = 'none';
+        }
+        
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+            document.getElementById('results').style.display = show ? 'none' : 'block';
+            document.getElementById('analyzeBtn').disabled = show;
+        }
+        
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+        
+        function loadExample() {
+            codeInput.value = `def analyze_spot_environment(self, lat, lon, radius=1000):
+    """Analyze environment around a spot"""
+    # TODO: Add error handling
+    data = self.query_api(lat, lon)
+    
+    score = 0
+    if data['forest_coverage'] > 50:
+        score = score + 20
+    
+    # Check water access
+    water = data.get('water_features')
+    if water != None:
+        score = score + 10
+        
+    print("Score calculated: " + str(score))
+    
+    return score`;
+            
+            languageSelect.value = 'python';
+        }
+    </script>
+</body>
+</html>

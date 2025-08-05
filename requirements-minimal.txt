@@ -1,0 +1,12 @@
+# Core dependencies only - for quick setup
+python-dotenv==1.0.1
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+sqlalchemy==2.0.25
+httpx==0.26.0
+beautifulsoup4==4.12.3
+pandas==2.2.0
+numpy==1.26.4
+geopy==2.4.1
+tqdm==4.66.1
+pytest==7.4.4

@@ -1,0 +1,21 @@
+{
+  "name": "spots-map-validation",
+  "version": "1.0.0",
+  "description": "Automated map validation tests for SPOTS project",
+  "type": "module",
+  "scripts": {
+    "test": "node run-validation.js",
+    "test:regional": "node run-validation.js regionalMap --screenshots",
+    "test:sunshadow": "node run-validation.js sunShadowDemo --screenshots",
+    "test:elevation": "node run-validation.js sunShadowWorking --screenshots",
+    "test:performance": "node run-validation.js performanceBenchmark",
+    "test:show": "node run-validation.js --show",
+    "test:all": "node run-validation.js --headless --screenshots"
+  },
+  "dependencies": {
+    "puppeteer": "^24.15.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

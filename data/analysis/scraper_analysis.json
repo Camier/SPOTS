@@ -1,0 +1,217 @@
+{
+  "instagram": [
+    {
+      "file": "unified_instagram_scraper.py",
+      "size": 9780,
+      "lines": 289,
+      "functions": [
+        "__init__",
+        "__init__",
+        "_scrape_sync",
+        "__init__",
+        "__init__",
+        "_select_strategy",
+        "_validate_item",
+        "scrape_sync"
+      ],
+      "classes": [
+        "ScrapingStrategy",
+        "PlaywrightStrategy",
+        "SeleniumStrategy",
+        "APIStrategy",
+        "UnifiedInstagramScraper"
+      ],
+      "imports": [
+        "os",
+        "re",
+        "time",
+        "json",
+        "random",
+        "asyncio",
+        "typing.List",
+        "typing.Dict",
+        "typing.Optional",
+        "typing.Tuple",
+        "typing.Any",
+        "datetime.datetime",
+        "abc.ABC",
+        "abc.abstractmethod",
+        "logging",
+        "src.backend.core.logging_config.logger",
+        "playwright.async_api.async_playwright",
+        "pydantic.ValidationError",
+        "src.backend.scrapers.base_scraper.BaseScraper",
+        "src.backend.scrapers.geocoding_mixin.GeocodingMixin",
+        "src.backend.validators.social_media_schemas.DataValidator",
+        "src.backend.validators.real_data_validator.enforce_real_data",
+        "selenium.webdriver",
+        "selenium.webdriver.common.by.By",
+        "playwright"
+      ],
+      "error_handling": [
+        "ImportError",
+        "ImportError",
+        "Exception",
+        "Exception",
+        "Exception",
+        "Exception"
+      ],
+      "last_modified": "2025-08-04 23:28:52.680571",
+      "complexity_score": 18,
+      "has_logging": true,
+      "has_tests": false,
+      "docstring_coverage": 50.0
+    },
+    {
+      "file": "validated_instagram_scraper.py",
+      "size": 6768,
+      "lines": 180,
+      "functions": [
+        "demo_validated_scraping",
+        "__init__",
+        "create_validated_spot",
+        "analyze_sentiment",
+        "export_validated_data"
+      ],
+      "classes": [
+        "ValidatedInstagramScraper"
+      ],
+      "imports": [
+        "sys",
+        "json",
+        "pathlib.Path",
+        "datetime.datetime",
+        "typing.Dict",
+        "typing.List",
+        "typing.Optional",
+        "src.backend.core.logging_config.logger",
+        "src.backend.validators.social_media_schemas.DataValidator",
+        "src.backend.validators.social_media_schemas.SocialMediaSchemas",
+        "src.backend.scrapers.unified_instagram_scraper.UnifiedInstagramScraper",
+        "src.backend.validators.real_data_validator.enforce_real_data"
+      ],
+      "error_handling": [],
+      "last_modified": "2025-08-04 23:24:17.775299",
+      "complexity_score": 7,
+      "has_logging": false,
+      "has_tests": false,
+      "docstring_coverage": 80.0
+    },
+    {
+      "file": "instagram_data_handler.py",
+      "size": 9594,
+      "lines": 273,
+      "functions": [
+        "main",
+        "__init__",
+        "setup_database",
+        "sanitize_caption",
+        "extract_activities",
+        "determine_spot_type",
+        "hash_post_id",
+        "store_instagram_spot",
+        "get_spots_summary"
+      ],
+      "classes": [
+        "InstagramDataHandler"
+      ],
+      "imports": [
+        "hashlib",
+        "json",
+        "re",
+        "datetime.datetime",
+        "typing.Dict",
+        "typing.List",
+        "typing.Optional",
+        "sqlite3",
+        "pathlib.Path",
+        "src.backend.core.logging_config.logger"
+      ],
+      "error_handling": [
+        "Exception"
+      ],
+      "last_modified": "2025-08-04 20:23:15.795498",
+      "complexity_score": 11,
+      "has_logging": false,
+      "has_tests": false,
+      "docstring_coverage": 88.88888888888889
+    },
+    {
+      "file": "instagram_best_practices.py",
+      "size": 15162,
+      "lines": 367,
+      "functions": [
+        "main",
+        "__init__",
+        "extract_location_from_caption",
+        "detect_activities",
+        "extract_locations_from_caption",
+        "geocode_location",
+        "is_in_occitanie",
+        "get_anti_detection_config",
+        "generate_human_like_behavior",
+        "validate_scraping_metrics",
+        "process_instagram_caption",
+        "export_spots_data"
+      ],
+      "classes": [
+        "InstagramBestPractices"
+      ],
+      "imports": [
+        "re",
+        "random",
+        "time",
+        "typing.List",
+        "typing.Dict",
+        "typing.Tuple",
+        "typing.Optional",
+        "geopy.geocoders.Nominatim",
+        "geopy.exc.GeocoderTimedOut",
+        "geopy.exc.GeocoderServiceError",
+        "src.backend.core.logging_config.logger",
+        "datetime.datetime",
+        "datetime.datetime",
+        "json",
+        "pathlib.Path"
+      ],
+      "error_handling": [
+        "(GeocoderTimedOut, GeocoderServiceError)"
+      ],
+      "last_modified": "2025-08-04 20:23:15.795330",
+      "complexity_score": 14,
+      "has_logging": false,
+      "has_tests": false,
+      "docstring_coverage": 91.66666666666666
+    }
+  ],
+  "osm": [
+    {
+      "file": "osm_scraper.py",
+      "size": 9412,
+      "lines": 309,
+      "functions": [
+        "query_overpass",
+        "process_osm_data",
+        "save_to_database",
+        "main"
+      ],
+      "classes": [],
+      "imports": [
+        "json",
+        "sqlite3",
+        "time",
+        "datetime.datetime",
+        "src.backend.core.logging_config.logger",
+        "requests"
+      ],
+      "error_handling": [
+        "Exception"
+      ],
+      "last_modified": "2025-08-04 20:23:15.795937",
+      "complexity_score": 4,
+      "has_logging": false,
+      "has_tests": false,
+      "docstring_coverage": 75.0
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          3.3857,
+          43.6508
+        ]
+      },
+      "properties": {
+        "name": "Lac de Salagou",
+        "department": "34",
+        "caption": "Beautiful day at the lake! Contact me [user] or [email]",
+        "activities": "randonn\u00e9e, baignade",
+        "type": "lac",
+        "collected_at": "2025-08-03T19:49:58.580010",
+        "source": "Instagram"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          3.385674,
+          43.650773
+        ]
+      },
+      "properties": {
+        "name": "Unknown",
+        "department": "34",
+        "caption": "Quelle jolie vue. O\u00f9 est-ce? \u2728",
+        "activities": "",
+        "type": "nature_spot",
+        "collected_at": "2025-08-03T19:50:33.543108",
+        "source": "Instagram"
+      }
+    }
+  ]
+}

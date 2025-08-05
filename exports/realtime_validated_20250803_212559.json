@@ -1,0 +1,61 @@
+{
+  "export_date": "2025-08-03T21:25:59.421318",
+  "source": "Instagram",
+  "total_spots": 3,
+  "validation_stats": {
+    "total_items": 4,
+    "valid_items": 3,
+    "invalid_items": 1,
+    "validation_rate": 75.0,
+    "duration_seconds": 44.681174,
+    "items_per_second": 0.08952316248449516,
+    "top_errors": {
+      "Sanitization failed": 1
+    }
+  },
+  "spots": [
+    {
+      "id": "123456789",
+      "caption": "Belle journée au Lac de Salagou! 🏊‍♂️ #Occitanie",
+      "timestamp": "2025-08-03T14:00:00Z",
+      "likes": 156,
+      "url": "https://instagram.com/p/test1",
+      "location": "Lac de Salagou",
+      "coordinates": {
+        "lat": 43.6468449,
+        "lon": 3.3912091
+      },
+      "activities": [],
+      "sentiment": "positive",
+      "collected_at": "2025-08-03T21:25:16.240156"
+    },
+    {
+      "id": "456789123",
+      "caption": "Escalade dans les Gorges du Tarn 🧗",
+      "timestamp": "invalid-date",
+      "likes": 89,
+      "url": "https://instagram.com/p/test3",
+      "location": "Escalade dans les Gorges du Tarn",
+      "coordinates": null,
+      "activities": [
+        "escalade"
+      ],
+      "sentiment": "positive",
+      "collected_at": "2025-08-03T21:25:38.838516"
+    },
+    {
+      "id": "789123456",
+      "caption": "Camping sauvage près de Montpellier avec [user]",
+      "timestamp": "2025-08-03T18:00:00Z",
+      "likes": 234,
+      "url": "https://instagram.com/p/test4",
+      "location": "Camping sauvage près de Montpellier avec",
+      "coordinates": null,
+      "activities": [
+        "camping"
+      ],
+      "sentiment": null,
+      "collected_at": "2025-08-03T21:25:59.415217"
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "timestamp": "2025-08-05T09:17:59.714Z",
+  "summary": {
+    "total": 9,
+    "passed": 7,
+    "failed": 2
+  },
+  "scenarios": {
+    "testMap": {
+      "scenario": "Test Map Validation",
+      "path": "/test-map.html",
+      "tests": [
+        {
+          "name": "Map Loads",
+          "passed": {
+            "_leaflet_events": {
+              "scroll1_2": {},
+              "click4_2": {},
+              "dblclick4_2": {
+                "dblclick": {},
+                "simDblclick": {}
+              },
+              "mousedown4_2": {},
+              "mouseup4_2": {},
+              "mouseover4_2": {},
+              "mouseout4_2": {},
+              "mousemove4_2": {},
+              "contextmenu4_2": {},
+              "keypress4_2": {},
+              "keydown4_2": {},
+              "keyup4_2": {},
+              "mousedown12_13": {},
+              "touchstart14_15": {},
+              "mousedown14_15": {},
+              "focus16_17": {},
+              "blur18_17": {},
+              "mousedown19_17": {},
+              "wheel20_21": {},
+              "touchstart22_23": {}
+            },
+            "_leaflet_id": 3
+          },
+          "message": "Map loaded successfully"
+        },
+        {
+          "name": "IGN Tiles Present",
+          "passed": true,
+          "message": "Found 48/48 IGN tiles"
+        },
+        {
+          "name": "Marker Present",
+          "passed": true,
+          "message": "Marker found"
+        }
+      ],
+      "passed": true
+    },
+    "regionalMap": {
+      "scenario": "Regional Map Optimized",
+      "path": "/regional-map-optimized.html",
+      "tests": [
+        {
+          "name": "IGN Tiles Load",
+          "passed": true,
+          "message": "45/45 IGN tiles loaded"
+        },
+        {
+          "name": "Spot Markers Display",
+          "passed": false,
+          "message": "0 markers, 0 clusters"
+        },
+        {
+          "name": "Filter Controls Work",
+          "passed": true,
+          "message": "Filter controls found"
+        }
+      ],
+      "passed": false
+    },
+    "sunShadowDemo": {
+      "scenario": "Sun Shadow Calculator Demo",
+      "path": "/sun-shadow-demo.html",
+      "error": "Waiting failed: 10000ms exceeded",
+      "passed": false
+    },
+    "sunShadowWorking": {
+      "scenario": "Sun Shadow with IGN Elevation",
+      "path": "/sun-shadow-working.html",
+      "error": "Waiting failed: 10000ms exceeded",
+      "passed": false
+    },
+    "performanceBenchmark": {
+      "scenario": "Performance Benchmark",
+      "path": "/regional-map-optimized.html",
+      "tests": [
+        {
+          "name": "Initial Load Time",
+          "passed": true,
+          "message": "Total load time: 65ms",
+          "metrics": {
+            "domContentLoaded": 0.09999999962747097,
+            "loadComplete": 0,
+            "totalTime": 65.30000000074506
+          }
+        },
+        {
+          "name": "Memory Usage",
+          "passed": true,
+          "message": "Memory: 5MB / 7MB",
+          "metrics": {
+            "used": 5,
+            "total": 7,
+            "limit": 4096
+          }
+        },
+        {
+          "name": "Frame Rate",
+          "passed": false,
+          "message": "Error: map.getCenter is not a function"
+        }
+      ],
+      "passed": false
+    }
+  }
+}
