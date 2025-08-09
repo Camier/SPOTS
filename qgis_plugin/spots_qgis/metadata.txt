@@ -1,0 +1,48 @@
+# SPOTS QGIS Plugin Metadata
+
+[general]
+name=SPOTS - Hidden Outdoor Spots Explorer
+qgisMinimumVersion=3.16
+description=Discover, manage and analyze hidden outdoor spots in Occitanie with AI-powered features
+version=1.0.0
+author=SPOTS Project Team
+email=spots@example.com
+
+about=SPOTS integrates with QGIS to provide powerful mapping and analysis capabilities for outdoor spot discovery. Features include:
+    - AI-powered image location detection
+    - Urban exploration safety visualization
+    - Web scraping integration for spot discovery
+    - Advanced spatial analysis for outdoor activities
+    - IGN map integration for French territory
+    
+    Perfect for outdoor enthusiasts, urban explorers, and adventure seekers in the Occitanie region.
+
+tracker=https://github.com/spots-project/qgis-plugin/issues
+repository=https://github.com/spots-project/qgis-plugin
+# End of mandatory metadata
+
+# Recommended items:
+hasProcessingProvider=yes
+changelog=
+    Version 1.0.0 (2025-01-09)
+    - Initial release
+    - SpatiaLite database integration
+    - Basic spot visualization
+    - Safety level rendering
+    - Department filtering
+    - Add/Edit spot functionality
+
+# Tags for plugin repository
+tags=outdoor,exploration,urbex,france,occitanie,hiking,hidden spots,ai,vision
+
+homepage=https://spots-project.org
+category=Database
+icon=icon.png
+experimental=False
+deprecated=False
+
+# Plugin dependencies
+plugin_dependencies=
+
+# Server plugins
+server=False

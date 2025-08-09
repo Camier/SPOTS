@@ -1,0 +1,42 @@
+{
+  "IGN_CONSOLIDATED": {
+    "total_size_mb": 308.6328125,
+    "active_maps": [
+      {
+        "name": "ign_parcelles.mbtiles",
+        "size_mb": 0.23,
+        "tiles": 42
+      },
+      {
+        "name": "osm.mbtiles",
+        "size_mb": 3.16,
+        "tiles": 122
+      },
+      {
+        "name": "ign_plan.mbtiles",
+        "size_mb": 61.64,
+        "tiles": 1194
+      },
+      {
+        "name": "ign_ortho.mbtiles",
+        "size_mb": 3.21,
+        "tiles": 200
+      }
+    ],
+    "downloads_in_progress": [],
+    "cache_recovered": [
+      {
+        "name": "ign_cache_extracted.mbtiles",
+        "size_mb": 240.38,
+        "tiles": 10321
+      }
+    ],
+    "scripts": {
+      "download": [],
+      "analysis": [],
+      "utilities": []
+    },
+    "projects": [],
+    "statistics": {}
+  }
+}

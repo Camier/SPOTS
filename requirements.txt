@@ -39,6 +39,15 @@ geopy==2.4.1
 pyproj==3.6.1
 gpxpy==1.6.2
 
+# Vision & Image Processing  
+Pillow==10.2.0
+exifread==3.0.0
+transformers==4.37.2
+torch==2.2.0
+torchvision==0.17.0
+faiss-cpu==1.7.4
+opencv-python==4.9.0.80
+
 # Utilities
 python-dateutil==2.8.2
 pytz==2024.1

@@ -1,0 +1,12 @@
+IGN CACHE ANALYSIS REPORT
+============================================================
+
+Cache directory: /home/miko/IGN_DATA/CACHE
+Total files: 10,401
+Estimated size: 1007.45 MB
+Recovered tiles: 0
+
+RECOMMENDATIONS:
+1. The cache contains valuable tile data
+2. Full recovery would require reverse-engineering the cache format
+3. Consider using QGIS export instead for organized tiles

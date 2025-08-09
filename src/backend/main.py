@@ -18,6 +18,8 @@ load_dotenv()
 
 # Import API routers
 from src.backend.api import mapping_france
+from src.backend.api.urbex_api import router as urbex_router
+from src.backend.api.ign_offline import router as ign_offline_router
 # Temporarily disabled due to missing dependencies
 # from src.backend.api import ign_data, code_analysis
 
@@ -84,6 +86,7 @@ def build_where_clause(bounds: Dict) -> str:
 
 # Include API routers
 app.include_router(mapping_france.router, prefix="/api/mapping", tags=["mapping"])
+app.include_router(ign_offline_router, prefix="/api/ign-offline", tags=["IGN Offline Maps"])
 # Temporarily disabled due to missing dependencies
 # app.include_router(ign_data.router, prefix="/api/ign", tags=["IGN OpenData"])
 # app.include_router(code_analysis.router, prefix="/api/code", tags=["Code Analysis"])
@@ -381,6 +384,9 @@ async def search_spots(q: str = Query(..., min_length=2), limit: int = Query(50,
 
     return {"query": q, "count": len(spots), "spots": spots}
 
+
+# Include urbex router
+app.include_router(urbex_router)
 
 # Error handler
 @app.exception_handler(Exception)

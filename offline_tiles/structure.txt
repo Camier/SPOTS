@@ -1,0 +1,21 @@
+OFFLINE TILES STRUCTURE (50GB Plan)
+====================================
+
+/offline_tiles/
+├── ign_scan25/          # 15GB - Topographic maps 1:25000
+│   ├── z8-10/          # Overview (500MB)
+│   ├── z11-12/         # Regional (4.5GB)
+│   └── z13-14/         # Local detail (10GB)
+├── ign_plan/           # 20GB - IGN Plan v2
+│   ├── toulouse/       # 5GB
+│   ├── montpellier/    # 3GB
+│   ├── carcassonne/    # 2GB
+│   ├── perpignan/      # 2GB
+│   ├── nimes/          # 2GB
+│   └── occitanie_z10/  # 6GB overview
+├── ign_ortho/          # 15GB - Aerial imagery
+│   ├── spots_clusters/ # 10GB for spot areas
+│   └── cities_z14/     # 5GB for urban areas
+└── cache/              # Temporary download cache
+
+Total: ~50GB

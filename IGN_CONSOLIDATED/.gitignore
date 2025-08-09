@@ -1,0 +1,26 @@
+# IGN Map Downloads
+01_active_maps/*.mbtiles
+02_downloads/*.log
+02_downloads/*.mbtiles
+03_archive/
+04_cache/
+
+# Process files
+.download.pid
+*.pyc
+__pycache__/
+
+# Large files
+*.mbtiles
+*.gpkg
+*.tif
+*.tiff
+
+# Logs
+*.log
+nohup.out
+
+# Temporary
+*.tmp
+*.bak
+*.swp

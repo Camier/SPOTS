@@ -1,0 +1,300 @@
+/* Offline Maps Control Styles */
+
+.offline-maps-control {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    padding: 12px;
+    min-width: 280px;
+    max-width: 320px;
+}
+
+.offline-control-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.offline-control-header h4 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+}
+
+.offline-status {
+    font-size: 11px;
+    color: #666;
+    background: #f5f5f5;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.offline-layers-list {
+    margin-bottom: 12px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.offline-layer-item {
+    padding: 6px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.offline-layer-item:last-child {
+    border-bottom: none;
+}
+
+.offline-layer-item label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    padding-left: 20px;
+    position: relative;
+}
+
+.offline-layer-item input[type="radio"] {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.layer-name {
+    font-size: 13px;
+    color: #333;
+    flex-grow: 1;
+}
+
+.layer-stats {
+    font-size: 11px;
+    color: #999;
+    margin-left: 8px;
+}
+
+.offline-layer-item input[type="radio"]:checked + label .layer-name {
+    font-weight: 600;
+    color: #2196F3;
+}
+
+/* Progress Bar */
+.offline-progress {
+    margin: 12px 0;
+}
+
+.progress-bar {
+    height: 6px;
+    background: #e0e0e0;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2196F3, #4CAF50);
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    font-size: 11px;
+    color: #666;
+    display: block;
+    text-align: center;
+}
+
+/* Action Buttons */
+.offline-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.btn-small {
+    flex: 1;
+    padding: 6px 10px;
+    font-size: 12px;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-small:hover {
+    background: #f5f5f5;
+    border-color: #2196F3;
+    color: #2196F3;
+}
+
+/* Download Dialog */
+.offline-download-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.dialog-content {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+.dialog-content h3 {
+    margin: 0 0 20px 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.download-options,
+.download-layers {
+    margin-bottom: 20px;
+}
+
+.download-options label,
+.download-layers label {
+    display: block;
+    padding: 8px;
+    margin: 4px 0;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.download-options label:hover,
+.download-layers label:hover {
+    background: #f5f5f5;
+}
+
+.download-options input,
+.download-layers input {
+    margin-right: 8px;
+}
+
+.dialog-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.btn-primary,
+.btn-secondary {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: #2196F3;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #1976D2;
+}
+
+.btn-secondary {
+    background: #f5f5f5;
+    color: #666;
+    border: 1px solid #ddd;
+}
+
+.btn-secondary:hover {
+    background: #e0e0e0;
+}
+
+/* Notifications */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 6px;
+    color: white;
+    font-size: 14px;
+    z-index: 10001;
+    animation: slideIn 0.3s ease;
+}
+
+.notification-success {
+    background: #4CAF50;
+}
+
+.notification-warning {
+    background: #FF9800;
+}
+
+.notification-error {
+    background: #f44336;
+}
+
+.notification-info {
+    background: #2196F3;
+}
+
+.notification.fade-out {
+    animation: slideOut 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .offline-maps-control {
+        min-width: 240px;
+        max-width: 280px;
+    }
+    
+    .offline-control-header h4 {
+        font-size: 13px;
+    }
+    
+    .offline-status {
+        font-size: 10px;
+    }
+    
+    .layer-name {
+        font-size: 12px;
+    }
+    
+    .dialog-content {
+        padding: 16px;
+    }
+}
